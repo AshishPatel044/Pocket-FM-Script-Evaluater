@@ -1,9 +1,11 @@
 import { useState } from 'react'
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001'
+
 export default function LoginPage({ onLogin }) {
   const [email, setEmail] = useState('')
   const [otp, setOtp] = useState('')
-  const [step, setStep] = useState('email') // 'email' | 'otp'
+  const [step, setStep] = useState('email')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
@@ -23,7 +25,7 @@ export default function LoginPage({ onLogin }) {
 
     setLoading(true)
     try {
-      const res = await fetch('/api/auth/send-otp', {
+      const res = await fetch(`${API_URL}/api/auth/send-otp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email })
@@ -54,7 +56,7 @@ export default function LoginPage({ onLogin }) {
 
     setLoading(true)
     try {
-      const res = await fetch('/api/auth/verify-otp', {
+      const res = await fetch(`${API_URL}/api/auth/verify-otp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, otp })
@@ -82,14 +84,12 @@ export default function LoginPage({ onLogin }) {
 
   return (
     <div className="min-h-screen bg-pocket-bg flex items-center justify-center px-4">
-      {/* Background gradient */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-40 -left-40 w-96 h-96 bg-pocket-orange opacity-5 rounded-full blur-3xl" />
         <div className="absolute -bottom-40 -right-40 w-96 h-96 bg-pocket-orange opacity-5 rounded-full blur-3xl" />
       </div>
 
       <div className="w-full max-w-md relative z-10">
-        {/* Logo */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center gap-3 mb-4">
             <div className="w-10 h-10 bg-pocket-orange rounded-lg flex items-center justify-center">
@@ -103,7 +103,6 @@ export default function LoginPage({ onLogin }) {
           <p className="text-gray-400 text-sm">AI-powered promo script analysis tool</p>
         </div>
 
-        {/* Card */}
         <div className="bg-pocket-card border border-pocket-border rounded-2xl p-8">
           {step === 'email' ? (
             <form onSubmit={handleSendOTP} className="space-y-5">
