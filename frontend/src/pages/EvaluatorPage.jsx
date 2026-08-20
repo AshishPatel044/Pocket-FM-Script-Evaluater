@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import ResultPage from './ResultPage'
 
 const API_URL = import.meta.env.VITE_API_URL || ''
@@ -14,6 +14,34 @@ const LOADING_MESSAGES = [
   'Almost there...',
 ]
 
+// Extract text from .docx using mammoth (loaded from CDN via dynamic import)
+async function extractDocx(file) {
+  const arrayBuffer = await file.arrayBuffer()
+  // mammoth is loaded via CDN script tag in index.html
+  if (typeof mammoth === 'undefined') {
+    throw new Error('DOCX parser not loaded. Please refresh and try again.')
+  }
+  const result = await mammoth.extractRawText({ arrayBuffer })
+  return result.value
+}
+
+// Extract text from .pdf using PDF.js
+async function extractPdf(file) {
+  const arrayBuffer = await file.arrayBuffer()
+  if (typeof pdfjsLib === 'undefined') {
+    throw new Error('PDF parser not loaded. Please refresh and try again.')
+  }
+  pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js'
+  const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise
+  let text = ''
+  for (let i = 1; i <= pdf.numPages; i++) {
+    const page = await pdf.getPage(i)
+    const content = await page.getTextContent()
+    text += content.items.map(item => item.str).join(' ') + '\n'
+  }
+  return text
+}
+
 export default function EvaluatorPage({ auth, onLogout }) {
   const [form, setForm] = useState({
     showName: '',
@@ -23,8 +51,48 @@ export default function EvaluatorPage({ auth, onLogout }) {
   })
   const [loading, setLoading] = useState(false)
   const [loadingMsg, setLoadingMsg] = useState('')
+  const [fileLoading, setFileLoading] = useState(false)
+  const [fileName, setFileName] = useState('')
   const [result, setResult] = useState(null)
   const [error, setError] = useState('')
+  const fileInputRef = useRef(null)
+
+  async function handleFileUpload(e) {
+    const file = e.target.files[0]
+    if (!file) return
+
+    setFileLoading(true)
+    setError('')
+    setFileName(file.name)
+
+    try {
+      let text = ''
+      const ext = file.name.split('.').pop().toLowerCase()
+
+      if (ext === 'docx' || ext === 'doc') {
+        text = await extractDocx(file)
+      } else if (ext === 'pdf') {
+        text = await extractPdf(file)
+      } else {
+        // plain text fallback
+        text = await file.text()
+      }
+
+      if (!text.trim()) {
+        setError('Could not extract text from the file. Please paste the script manually.')
+        setFileName('')
+      } else {
+        setForm(f => ({ ...f, script: text.trim() }))
+      }
+    } catch (err) {
+      setError('Failed to read file: ' + err.message)
+      setFileName('')
+    } finally {
+      setFileLoading(false)
+      // Reset input so same file can be re-uploaded
+      e.target.value = ''
+    }
+  }
 
   async function handleEvaluate(e) {
     e.preventDefault()
@@ -48,9 +116,7 @@ export default function EvaluatorPage({ auth, onLogout }) {
     try {
       const res = await fetch(`${API_URL}/api/evaluate`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(form)
       })
 
@@ -59,14 +125,11 @@ export default function EvaluatorPage({ auth, onLogout }) {
       if (data.success) {
         setResult(data.evaluation)
       } else {
-        if (res.status === 401) {
-          onLogout()
-          return
-        }
+        // Never logout on error — just show the error message
         setError(data.message || 'Evaluation failed. Please try again.')
       }
     } catch {
-      setError('Network error. Please check your connection and try again.')
+      setError('Cannot reach the evaluation server. Please check that the backend is running and VITE_API_URL is set correctly in Vercel.')
     } finally {
       clearInterval(msgInterval)
       setLoading(false)
@@ -77,6 +140,7 @@ export default function EvaluatorPage({ auth, onLogout }) {
   function handleReset() {
     setResult(null)
     setError('')
+    setFileName('')
     setForm(f => ({ ...f, script: '' }))
   }
 
@@ -122,10 +186,11 @@ export default function EvaluatorPage({ auth, onLogout }) {
             <div className="fade-in">
               <div className="mb-6">
                 <h2 className="text-2xl font-bold text-white">Evaluate a Promo Script</h2>
-                <p className="text-gray-400 mt-1 text-sm">Paste your script and get AI-powered feedback against P0 benchmarks</p>
+                <p className="text-gray-400 mt-1 text-sm">Paste your script or upload a file — get AI-powered feedback against P0 benchmarks</p>
               </div>
 
               <form onSubmit={handleEvaluate} className="space-y-5">
+                {/* Show Name + Genre */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-300 mb-2">Show Name</label>
@@ -152,6 +217,7 @@ export default function EvaluatorPage({ auth, onLogout }) {
                   </div>
                 </div>
 
+                {/* Episode Range */}
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-2">Episode Range</label>
                   <input
@@ -163,9 +229,66 @@ export default function EvaluatorPage({ auth, onLogout }) {
                   />
                 </div>
 
+                {/* File Upload */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Upload Script File</label>
+                  <div
+                    onClick={() => fileInputRef.current?.click()}
+                    className="w-full bg-[#111] border-2 border-dashed border-pocket-border hover:border-pocket-orange rounded-lg px-4 py-5 flex items-center gap-4 cursor-pointer transition-colors group"
+                  >
+                    <div className="w-10 h-10 rounded-lg bg-pocket-border group-hover:bg-pocket-orange/20 flex items-center justify-center flex-shrink-0 transition-colors">
+                      {fileLoading ? (
+                        <svg className="animate-spin w-5 h-5 text-pocket-orange" viewBox="0 0 24 24" fill="none">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+                        </svg>
+                      ) : (
+                        <svg className="w-5 h-5 text-gray-400 group-hover:text-pocket-orange transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
+                        </svg>
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      {fileName ? (
+                        <>
+                          <p className="text-white text-sm font-medium truncate">{fileName}</p>
+                          <p className="text-green-400 text-xs mt-0.5">File loaded — script extracted below</p>
+                        </>
+                      ) : (
+                        <>
+                          <p className="text-gray-300 text-sm">Click to upload .docx, .doc, or .pdf</p>
+                          <p className="text-gray-500 text-xs mt-0.5">Text will be extracted automatically</p>
+                        </>
+                      )}
+                    </div>
+                    {fileName && (
+                      <button
+                        type="button"
+                        onClick={e => { e.stopPropagation(); setFileName(''); setForm(f => ({ ...f, script: '' })) }}
+                        className="text-gray-500 hover:text-red-400 transition-colors flex-shrink-0"
+                      >
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                      </button>
+                    )}
+                  </div>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept=".docx,.doc,.pdf,.txt"
+                    onChange={handleFileUpload}
+                    className="hidden"
+                  />
+                </div>
+
+                {/* Script Textarea */}
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <label className="block text-sm font-medium text-gray-300">Promo Script</label>
+                    <label className="block text-sm font-medium text-gray-300">
+                      Promo Script
+                      <span className="text-gray-500 font-normal ml-1">(or paste directly)</span>
+                    </label>
                     {form.script && (
                       <span className="text-xs text-gray-500">{form.script.split(/\s+/).filter(Boolean).length} words</span>
                     )}
@@ -173,10 +296,9 @@ export default function EvaluatorPage({ auth, onLogout }) {
                   <textarea
                     value={form.script}
                     onChange={e => { setForm(f => ({ ...f, script: e.target.value })); setError('') }}
-                    placeholder="Paste your promo script here...&#10;&#10;Start with the hook line, followed by context, scenes, and CTA questions."
-                    rows={18}
+                    placeholder="Paste your promo script here, or upload a file above..."
+                    rows={14}
                     className="w-full bg-[#111] border border-pocket-border text-white placeholder-gray-600 rounded-lg px-4 py-3 focus:outline-none focus:border-pocket-orange transition-colors resize-none font-mono text-sm leading-relaxed"
-                    required
                   />
                 </div>
 
@@ -188,7 +310,7 @@ export default function EvaluatorPage({ auth, onLogout }) {
 
                 <button
                   type="submit"
-                  disabled={loading || !form.showName || !form.script.trim()}
+                  disabled={loading || fileLoading || !form.showName || !form.script.trim()}
                   className="w-full bg-pocket-orange hover:bg-pocket-orange-dim disabled:opacity-40 disabled:cursor-not-allowed text-white font-semibold rounded-lg px-4 py-3.5 transition-colors text-base"
                 >
                   {loading ? (
@@ -234,39 +356,31 @@ export default function EvaluatorPage({ auth, onLogout }) {
                   <span className="text-pocket-orange">🏆</span> Performance Tiers
                 </h3>
                 <div className="space-y-3">
-                  <div className="flex items-center gap-3">
-                    <span className="tier-p0 text-xs font-bold px-2.5 py-1 rounded-full">P0</span>
-                    <div>
-                      <span className="text-white text-sm font-medium">8.5 – 10.0</span>
-                      <span className="text-gray-400 text-xs ml-2">Top performer, ready to publish</span>
+                  {[
+                    { tier: 'P0', range: '8.5 – 10.0', label: 'Top performer, ready to publish', cls: 'tier-p0' },
+                    { tier: 'P1', range: '6.5 – 8.4', label: 'Good, needs specific fixes', cls: 'tier-p1' },
+                    { tier: 'P2', range: 'Below 6.5', label: 'Weak, major rework required', cls: 'tier-p2' },
+                  ].map(t => (
+                    <div key={t.tier} className="flex items-center gap-3">
+                      <span className={`${t.cls} text-xs font-bold px-2.5 py-1 rounded-full`}>{t.tier}</span>
+                      <div>
+                        <span className="text-white text-sm font-medium">{t.range}</span>
+                        <span className="text-gray-400 text-xs ml-2">{t.label}</span>
+                      </div>
                     </div>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <span className="tier-p1 text-xs font-bold px-2.5 py-1 rounded-full">P1</span>
-                    <div>
-                      <span className="text-white text-sm font-medium">6.5 – 8.4</span>
-                      <span className="text-gray-400 text-xs ml-2">Good, needs specific fixes</span>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <span className="tier-p2 text-xs font-bold px-2.5 py-1 rounded-full">P2</span>
-                    <div>
-                      <span className="text-white text-sm font-medium">Below 6.5</span>
-                      <span className="text-gray-400 text-xs ml-2">Weak, major rework required</span>
-                    </div>
-                  </div>
+                  ))}
                 </div>
               </div>
 
               <div className="bg-pocket-card border border-pocket-border rounded-xl p-6">
                 <h3 className="text-white font-semibold mb-3 flex items-center gap-2">
-                  <span className="text-pocket-orange">💡</span> Tips Before Submitting
+                  <span className="text-pocket-orange">💡</span> Tips
                 </h3>
                 <ul className="space-y-2 text-gray-400 text-sm">
-                  <li className="flex items-start gap-2"><span className="text-gray-600 mt-0.5">•</span> Include the complete promo with hook, context, scenes, and CTA</li>
-                  <li className="flex items-start gap-2"><span className="text-gray-600 mt-0.5">•</span> Select the correct genre for accurate P0 benchmark comparison</li>
-                  <li className="flex items-start gap-2"><span className="text-gray-600 mt-0.5">•</span> Evaluation takes 15-30 seconds — Claude analyzes every element</li>
-                  <li className="flex items-start gap-2"><span className="text-gray-600 mt-0.5">•</span> You'll get rewrite suggestions for weak sections</li>
+                  <li className="flex items-start gap-2"><span className="text-gray-600 mt-0.5">•</span> Upload .docx or .pdf — text extracts automatically</li>
+                  <li className="flex items-start gap-2"><span className="text-gray-600 mt-0.5">•</span> Include hook, context, scenes, and CTA questions</li>
+                  <li className="flex items-start gap-2"><span className="text-gray-600 mt-0.5">•</span> Select the correct genre for accurate P0 comparison</li>
+                  <li className="flex items-start gap-2"><span className="text-gray-600 mt-0.5">•</span> Evaluation takes 15–30 seconds</li>
                 </ul>
               </div>
             </div>
