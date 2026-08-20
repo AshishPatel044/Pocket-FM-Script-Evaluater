@@ -1,8 +1,6 @@
 import { useState, useRef } from 'react'
 import ResultPage from './ResultPage'
 
-const API_URL = import.meta.env.VITE_API_URL || ''
-
 const LOADING_MESSAGES = [
   'Reading your script...',
   'Analyzing hook line quality...',
@@ -114,12 +112,9 @@ export default function EvaluatorPage({ auth, onLogout }) {
     }, 3000)
 
     try {
-      const res = await fetch(`${API_URL}/api/evaluate`, {
+      const res = await fetch('/api/evaluate', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${auth.token}`
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(form)
       })
 
