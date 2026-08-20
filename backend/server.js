@@ -7,8 +7,9 @@ const evaluateRoutes = require('./routes/evaluate');
 const app = express();
 const PORT = process.env.PORT || 3001;
 
+// Allow all origins so Vercel frontend can reach Railway backend
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+  origin: true,
   credentials: true
 }));
 
