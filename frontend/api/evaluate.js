@@ -234,11 +234,67 @@ const P0_SCRIPTS = {
   ]
 }
 
+// ─── SHOW-SPECIFIC LOOKUP ─────────────────────────────────────────────────────
+// Maps show names / abbreviations to their confirmed P0 promos.
+// Falls back to full genre list for shows that have no P0 promos yet.
+function getShowData(showName) {
+  const q = (showName || '').toLowerCase().replace(/['".,!?]/g, '').trim()
+  const SHOW_ALIASES = [
+    { key: 'the warrior',             aliases: ['twar', 'warrior'],                         genre: 'Fantasy', matchShows: ['The Warrior'] },
+    { key: 'king of dragon',          aliases: ['kod', 'kodgn', 'dragon king'],              genre: 'Fantasy', matchShows: ['King of Dragon'] },
+    { key: 'the beast guru',          aliases: ['tbg', 'beast guru', 'beast'],              genre: 'Fantasy', matchShows: ['The Beast Guru'] },
+    { key: 'purple thunder sovereign',aliases: ['pts', 'purple thunder', 'purple'],          genre: 'Fantasy', matchShows: ['Purple Thunder Sovereign'] },
+    { key: 'primordial god',          aliases: ['pg', 'primordial'],                         genre: 'Fantasy', matchShows: ['Primordial God'] },
+    { key: 'divine flame burst',      aliases: ['dfb', 'divine flame'],                      genre: 'Fantasy', matchShows: ['Divine Flame Burst'] },
+    { key: 'brahmand ka rakshak',     aliases: ['bkr', 'brahmand', 'rakshak'],               genre: 'Fantasy', matchShows: ['Brahmand Ka Rakshak'] },
+    { key: 'divine power',            aliases: ['dp'],                                        genre: 'Fantasy', matchShows: [] },
+    { key: 'brahmyodha',              aliases: ['bhy'],                                       genre: 'Fantasy', matchShows: [] },
+    { key: 'rudra',                   aliases: ['rrsy', 'rudra rise', 'supreme yodha'],       genre: 'Fantasy', matchShows: [] },
+    { key: 'the legend gods',         aliases: ['tlg', 'legend gods'],                       genre: 'Fantasy', matchShows: [] },
+    { key: 'my mysterious princess',  aliases: ['mmp', 'mysterious princess'],                genre: 'Drama',   matchShows: ['My Mysterious Princess'] },
+    { key: 'empire of hidden king',   aliases: ['ehk', 'hidden king'],                        genre: 'Drama',   matchShows: ['Empire of Hidden King'] },
+    { key: 'billionaire hidden wife', aliases: ['bhw', 'brhw', 'billionaire hidden', 'hidden wife'], genre: 'Drama', matchShows: ['Billionaire Hidden Wife'] },
+    { key: 'his secret fortune',      aliases: ['hsf', 'secret fortune'],                    genre: 'Drama',   matchShows: ['His Secret Fortune'] },
+    { key: 'beggar husband',          aliases: ['bh', 'beggar'],                              genre: 'Drama',   matchShows: ['Beggar Husband'] },
+    { key: 'malang',                  aliases: ['ml'],                                        genre: 'Drama',   matchShows: [] },
+    { key: 'fated to be yours',       aliases: ['ftby', 'fated'],                             genre: 'Drama',   matchShows: [] },
+    { key: 'ek stranger se pyar',     aliases: ['essp', 'ek stranger', 'stranger pyar'],      genre: 'Drama',   matchShows: [] },
+    { key: 'ruthless',                aliases: ['rl'],                                        genre: 'Drama',   matchShows: [] },
+    { key: 'shiva ek pretyodha',      aliases: ['stdl', 'saya', 'dark love', 'shiva pretyodha'], genre: 'Horror', matchShows: ['Shiva Ek Pretyodha (Saya - The Dark Love)'] },
+  ]
+  const genrePool = { Fantasy: P0_SCRIPTS.fantasy, Drama: P0_SCRIPTS.drama, Horror: P0_SCRIPTS.horror }
+
+  let match = null
+  for (const entry of SHOW_ALIASES) {
+    const terms = [entry.key, ...entry.aliases]
+    if (terms.some(t => q === t || q.includes(t) || t.includes(q))) { match = entry; break }
+  }
+
+  const genre = match ? match.genre
+    : (q.includes('horror') ? 'Horror' : q.includes('drama') || q.includes('romance') ? 'Drama' : 'Fantasy')
+  const pool = genrePool[genre] || P0_SCRIPTS.fantasy
+
+  if (!match || match.matchShows.length === 0) {
+    return { genre, p0Promos: pool, hasShowSpecificP0s: false, showKey: match ? match.key : '' }
+  }
+
+  const showP0s = pool.filter(s => match.matchShows.includes(s.show))
+  if (showP0s.length === 0) {
+    return { genre, p0Promos: pool, hasShowSpecificP0s: false, showKey: match.key }
+  }
+  return { genre, p0Promos: showP0s, hasShowSpecificP0s: true, showKey: match.key }
+}
+
 function buildUserPrompt(script, showName, genre, episodeRange) {
-  const p0s = (P0_SCRIPTS[(genre || 'fantasy').toLowerCase()] || P0_SCRIPTS.fantasy)
+  const showData = getShowData(showName)
+  const p0s = showData.p0Promos
   const p0Summary = p0s.map(s =>
     `- ${s.id} (${s.show}): Hook: "${s.hookExample}" | Type: ${s.sequenceType} | Strengths: ${s.keyStrengths[0]}`
   ).join('\n')
+
+  const benchmarkLabel = showData.hasShowSpecificP0s
+    ? `"${showName}" SHOW-SPECIFIC P0 BENCHMARKS (compare ONLY against these — same show)`
+    : `${genre.toUpperCase()} GENRE P0 BENCHMARKS (no confirmed P0s yet for "${showName}" — use genre patterns)`
 
   return `Evaluate this PocketFM promo script for show "${showName}" (${genre} genre, episodes ${episodeRange}).
 
@@ -247,7 +303,7 @@ SUBMITTED PROMO SCRIPT:
 ${script}
 ---
 
-ACTUAL P0 BENCHMARK SCRIPTS FOR ${genre.toUpperCase()} (study these hook examples carefully):
+ACTUAL P0 BENCHMARK SCRIPTS — ${benchmarkLabel}:
 ${p0Summary}
 
 IMPORTANT EVALUATION RULES:
@@ -806,12 +862,39 @@ function scoreRatio(lines, fullText) {
   return { score, feedback: parts.join('. ') }
 }
 
+// Per-show vocab lists for show-specific feedback
+const SHOW_VOCAB = {
+  'the warrior':             ['आकाश विष मोती', 'मिस्टिक वेन्स', 'फ्रोजन क्लाउड', 'सम्प्रदाय', 'स्वर्गीय खजाने', 'गहन क्षेत्र', 'अथर्व', 'आर्या'],
+  'king of dragon':          ['ड्रैगन किंग', 'तिलस्मी टुकड़ा', 'कॉन्ट्रैक्ट मैरिज', 'स्वर्ण ड्रैगन', 'अर्जुन', 'शिवान्या', 'सुहागरात'],
+  'the beast guru':          ['जीवन-बंधन प्राणी', 'काली भुजा', 'स्वर्ग भवन', 'संजीवनी', 'अग्निगिरि विद्यापीठ', 'स्वर्ण गरुड़', 'रुद्र', 'समर', 'काव्या', 'चूजा'],
+  'purple thunder sovereign':['इंद्रवज्र', 'तड़ित प्रहार', 'कच्ची बिजली', 'असुर सम्राट', 'अवेकनर', 'आर्यन'],
+  'primordial god':          ['स्पिरिट ग्रेड', 'क्रिस्टल रूलर', 'राज नगर', 'डिवाइन वॉइस', 'संदूक', 'गूंगा', 'सूर्यांश', 'नैरा', 'हिमांशी'],
+  'divine flame burst':      ['चेतना', 'पौराणिक चेतना', 'जीवा परिवार', 'नौरंगी अंडा', 'अर्य साम्राज्य', 'जीवांश', 'आदित्य'],
+  'brahmand ka rakshak':     ['सोम ड्रैगन', 'अग्नि ड्रैगन', 'ड्रैगन अकादमी', 'सपनोल्लास साम्राज्य', 'क्षितिज'],
+  'my mysterious princess':  ['अनामिका', 'देवांश', 'नताशा', 'बायोलॉजिकल', 'ओबरॉय', 'सिंघानिया', 'मेडिकल जीनियस'],
+  'empire of hidden king':   ['अथर्व', 'नैना', 'राजवीर', 'छुपा राजा', 'मंत्री', 'साहब'],
+  'billionaire hidden wife': ['कार्तिक', 'अनिका', 'नकाबपोश', 'बिलियनेयर', 'पहचान', 'दादाजी'],
+  'his secret fortune':      ['शनाया', 'वैभव', 'सीक्रेट फॉर्च्यून', 'छुपी दौलत', 'दादी'],
+  'beggar husband':          ['शौर्य राठौर', 'शिप्रा', 'रायजादा', 'मुख्तार', 'भिखारी'],
+  'shiva ek pretyodha':      ['तांत्रिक', 'चुड़ैल', 'ॐ', 'साया', 'मंगलापुर', 'प्रेत्योधा', 'शिवा', 'काव्या'],
+}
+
 // ─── GENRE FEEDBACK ───────────────────────────────────────────────────────────
-function buildGenreFeedback(text, genre) {
+function buildGenreFeedback(text, genre, showName) {
   const lower = text.toLowerCase()
+  const showData = getShowData(showName || '')
+  const showKey = showData.showKey || ''
+  const showVocab = SHOW_VOCAB[showKey] || []
+  const showVocabMatches = showVocab.filter(w => lower.includes(w.toLowerCase())).length
   const vocab = GENRE_VOCAB[genre] || GENRE_VOCAB.Fantasy
   const vocabMatches = vocab.filter(w => lower.includes(w)).length
   const parts = []
+
+  if (showVocab.length > 0) {
+    if (showVocabMatches >= 3) parts.push(`Show-specific vocabulary strong — ${showVocabMatches} "${showName}" words detected (characters, world elements)`)
+    else if (showVocabMatches >= 1) parts.push(`Show-specific vocabulary weak — only ${showVocabMatches}/${showVocab.length} "${showName}" terms found. Use show names: ${showVocab.slice(0, 4).join(', ')}`)
+    else parts.push(`No show-specific vocabulary detected — a P0 promo for "${showName}" MUST use its world terms. Expected: ${showVocab.slice(0, 4).join(', ')}`)
+  }
 
   if (vocabMatches >= 6) parts.push(`${genre} genre vocabulary is strong (${vocabMatches} genre-specific words found in script)`)
   else if (vocabMatches >= 3) parts.push(`${genre} vocabulary is moderate (${vocabMatches} matches) — use more genre-specific language`)
@@ -881,13 +964,21 @@ function runIntelligentEvaluation(script, showName, genre) {
 
   const sorted = Object.entries(parameterScores).sort(([, a], [, b]) => b.score - a.score)
   const weakest = [...sorted].sort(([, a], [, b]) => a.score - b.score)[0]
-  const p0s = P0_SCRIPTS[(genre || 'fantasy').toLowerCase()] || P0_SCRIPTS.fantasy
+  const showData = getShowData(showName)
+  const p0s = showData.p0Promos
+  const showLabel = showData.hasShowSpecificP0s
+    ? `${showName} (show-specific P0)`
+    : `${showData.genre} genre benchmark (no "${showName}" P0s yet)`
 
   const p0Comparison = {
-    closestP0Script: `${p0s[0].id} (${p0s[0].show})`,
-    whatP0DoesDifferently: `${p0s[0].show}'s hook: "${p0s[0].hookExample}" — ${p0s[0].hookPattern}. This hook is show-specific, conflict-based, and under 13 words. The sequence type (${p0s[0].sequenceType}) ensures maximum tension from the opening.`,
+    closestP0Script: `${p0s[0].id} (${p0s[0].show}) — ${showData.hasShowSpecificP0s ? 'same show' : 'same genre'}`,
+    whatP0DoesDifferently: showData.hasShowSpecificP0s
+      ? `"${showName}" confirmed P0 hook: "${p0s[0].hookExample}" — ${p0s[0].hookPattern}. Sequence: ${p0s[0].sequenceType}. This is your exact show's top-performing pattern.`
+      : `No confirmed P0 promos yet for "${showName}". Nearest ${showData.genre} P0: ${p0s[0].show}'s hook: "${p0s[0].hookExample}" — ${p0s[0].hookPattern}. Apply same pattern to "${showName}" characters.`,
     keyLessons: [
-      `Hook must be confrontational dialogue, show-specific, under 13 words. P0 example: "${p0s[0].hookExample.substring(0, 50)}"`,
+      showData.hasShowSpecificP0s
+        ? `Your show's proven hook pattern: "${p0s[0].hookExample.substring(0, 60)}" — study this for exact tone and style`
+        : `No "${showName}" P0s yet — model your hook after ${p0s[0].show}: "${p0s[0].hookExample.substring(0, 50)}"`,
       `CTA needs exactly 3-4 क्या questions + Pocket FM mention. See ${p0s[0].id} for the correct question order and tone.`,
       weakest ? `Biggest opportunity: fix ${PARAM_LABELS[weakest[0]]} (${weakest[1].score}/10) — this single parameter is pulling your overall score down most` : 'Maintain consistency across all 7 parameters to reach P0'
     ]
@@ -904,16 +995,16 @@ function runIntelligentEvaluation(script, showName, genre) {
       const s = []
       const firstDia = lines.find(l => isDialogue(l)) || ''
       if (parameterScores.hookLine.score < 7) {
-        s.push({ original: firstDia.substring(0, 120) || '[Opening line of your script]', rewritten: `P0 hook pattern for ${genre}: "${p0s[0].hookExample}"\n\nYour hook should be: character name + emotion + dialogue in quotes + under 13 words + immediate conflict`, reason: `Rule 1: Hook must be character dialogue under 13 words with immediate crisis. Current hook misses this. ${p0s[0].id} achieves this with: "${p0s[0].hookPattern}"` })
+        s.push({ original: firstDia.substring(0, 120) || '[Opening line of your script]', rewritten: `${showLabel} hook pattern: "${p0s[0].hookExample}"\n\nYour hook should be: character name + emotion + dialogue in quotes + under 13 words + immediate conflict`, reason: `Rule 1: Hook must be character dialogue under 13 words with immediate crisis. ${p0s[0].id} achieves this with: "${p0s[0].hookPattern}"` })
       }
       if (parameterScores.ending.score < 7) {
-        const ctaEx = genre === 'Fantasy' ? 'क्या [protagonist] अपनी खोई शक्ति वापस पा पाएगा?\nक्या [antagonist] का असली रहस्य सामने आएगा?\nक्या [protagonist] ब्रह्मांड को बचाने के लिए काफी शक्तिशाली बन पाएगा?\n\nजानने के लिए डाउनलोड करें Pocket FM और सुनिए "[Show Name]"' : genre === 'Drama' ? 'क्या [protagonist] का राज़ कभी सामने आएगा?\nक्या ये रिश्ता कभी सच्चे प्यार में बदल पाएगा?\nआखिर [hidden identity] की सच्चाई क्या है?\n\nजानने के लिए डाउनलोड करें Pocket FM और सुनिए "[Show Name]"' : 'क्या [protagonist] उस [supernatural threat] का सामना कर पाएगा?\nआखिर वो [mystery element] क्या है?\nक्या [relationship] इस रहस्य को झेल पाएगा?\n\nजानने के लिए डाउनलोड करें Pocket FM और सुनिए "[Show Name]"'
+        const ctaEx = showData.genre === 'Fantasy' ? 'क्या [protagonist] अपनी खोई शक्ति वापस पा पाएगा?\nक्या [antagonist] का असली रहस्य सामने आएगा?\nक्या [protagonist] ब्रह्मांड को बचाने के लिए काफी शक्तिशाली बन पाएगा?\n\nजानने के लिए डाउनलोड करें Pocket FM और सुनिए "[Show Name]"' : showData.genre === 'Drama' ? 'क्या [protagonist] का राज़ कभी सामने आएगा?\nक्या ये रिश्ता कभी सच्चे प्यार में बदल पाएगा?\nआखिर [hidden identity] की सच्चाई क्या है?\n\nजानने के लिए डाउनलोड करें Pocket FM और सुनिए "[Show Name]"' : 'क्या [protagonist] उस [supernatural threat] का सामना कर पाएगा?\nआखिर वो [mystery element] क्या है?\nक्या [relationship] इस रहस्य को झेल पाएगा?\n\nजानने के लिए डाउनलोड करें Pocket FM और सुनिए "[Show Name]"'
         s.push({ original: 'Current CTA / ending section', rewritten: ctaEx, reason: `Rule 9: Exactly 3-4 क्या questions in order: latest cliffhanger → earlier mystery → character/relationship. Each answerable ONLY by listening. See ${p0s[0].id} CTA pattern.` })
       }
       return s.slice(0, 2)
     })(),
     p0Comparison,
-    genreSpecificFeedback: buildGenreFeedback(script, genre),
+    genreSpecificFeedback: buildGenreFeedback(script, genre, showName),
   }
 }
 
