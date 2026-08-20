@@ -1,544 +1,381 @@
-export const config = { maxDuration: 30 }
+import { GoogleGenerativeAI } from '@google/generative-ai'
 
-// ─── GENRE DATA ───────────────────────────────────────────────────────────────
-const GENRE_DATA = {
-  Fantasy: {
-    keywords: ['magic', 'magical', 'kingdom', 'dragon', 'sword', 'quest', 'realm', 'wizard', 'witch', 'prophecy', 'ancient', 'power', 'throne', 'warrior', 'spell', 'enchant', 'legend', 'chosen', 'destiny', 'forbidden', 'divine', 'cosmic', 'shakti', 'yudh', 'rakshak', 'brahmand', 'aahuti', 'vinaash', 'pratishodh', 'dev', 'asur', 'yoddha', 'brahma', 'avatar', 'trishul', 'celestial', 'immortal', 'primordial', 'srishti', 'duniya', 'akash', 'prithvi'],
-    p0Scripts: [
-      { id: 'TWAR-Hasim-LP1', show: 'The Warrior', hookPattern: 'Enemy threat as hook — immediate conflict polarity' },
-      { id: 'KODGN-Hasim-LP1', show: 'King of Dragon', hookPattern: 'Dragon mythology via threat or warning in first 2 lines' },
-      { id: 'BKR-Hasim-LP3', show: 'Brahmand Ka Rakshak', hookPattern: 'Divine warning dialogue — cosmic protector under threat' },
-      { id: 'PG-Hasim-LP1', show: 'Primordial God', hookPattern: 'Cosmic stakes in hook — Srishti ka pahla yoddha framing' },
-    ],
-    specificFeedback: [
-      { check: ['shakti', 'yoddha', 'brahmand', 'dharma', 'aahuti', 'vinaash', 'dev', 'asur', 'rakshak'], good: 'Sanskrit-influenced vocabulary adds authenticity — matches P0 fantasy pattern', bad: 'Add Sanskrit-influenced words (shakti, yoddha, brahmand) — P0 fantasy promos use this vocabulary for authenticity' },
-      { check: ['universe', 'world', 'cosmos', 'brahmand', 'srishti', 'civilization', 'existence', 'astitva', 'duniya'], good: 'Cosmic stakes established — matches P0 pattern of world-ending conflict', bad: 'Raise stakes from personal to cosmic — best fantasy promos feel civilization-threatening, not just personally important' },
-    ],
+export const config = { maxDuration: 60 }
+
+// ─── FULL MASTER PROMPT ───────────────────────────────────────────────────────
+const SYSTEM_PROMPT = `You are a world-class OTT Promo Script Evaluator for PocketFM — India's largest audio storytelling platform.
+
+You have deeply studied 49 high-performing promo scripts across Fantasy, Drama, and Horror genres on PocketFM. You understand exactly what makes a promo script a P0 (top performer), P1 (good), or P2 (weak).
+
+You have observed the following patterns from the top-performing promos (P0 scripts):
+
+═══════════════════════════════════════════════
+SECTION A — GENRE PATTERNS YOU HAVE INTERNALIZED
+═══════════════════════════════════════════════
+
+FANTASY GENRE (Shows: The Warrior, King of Dragon, Purple Thunder Sovereign, Primordial God, Rudra, Divine Flame Burst, Divine Power, Brahmyodha, Brahmand Ka Rakshak, The Legend Gods):
+
+1. WORLD-BUILDING IN HOOK: The best fantasy hooks immediately establish a supernatural or mythological world. Generic hooks like "yudh shuru hoga" fail. Strong hooks name specific powers, prophecies, or supernatural threats.
+
+2. POWER HIERARCHY IS EVERYTHING: Fantasy promos that perform well always establish clear power hierarchy — who is the strongest, who is being challenged, what is at stake cosmically, not just personally.
+
+3. PROTAGONIST JOURNEY ARC: Best fantasy promos show the protagonist at their lowest point first, then hint at their rise. This creates an irresistible transformation arc.
+
+4. DIVINE/COSMIC STAKES: The conflict must feel larger than personal — it should feel world-ending or civilization-defining. "Ek yoddha ki kahaani" fails. "Sampoorna brahmand ke astitva ka sawaal" works.
+
+5. ACTION LANGUAGE: Fantasy narration uses powerful Sanskrit-influenced vocabulary — words like "aahuti", "shakti", "yudh", "rakshak", "vinaash", "pratishodh". This creates authenticity.
+
+TOP P0 FANTASY PROMOS TO MIRROR:
+- TWAR-Akshay-LP1-30 Mins: Hook establishes the warrior's identity through a defiant dialogue, not description. Sequence is JUMBLED — starts at peak crisis, flashes to origin, returns to present war.
+- TWAR-Hasim-LP1: Opens with the enemy's threat as hook. Creates immediate conflict polarity.
+- KODGN-Hasim-LP1: Establishes dragon mythology in first 2 lines of context. Pacing accelerates sharply after midpoint.
+- PTS-Akshay-LP1: Purple Thunder's hook is a power declaration — short, specific, world-defining.
+- PG-Hasim-LP1: Primordial God uses cosmic stakes in hook. "Srishti ka pahla yoddha" is the frame.
+- DFB-Hasim-LP1: Divine Flame Burst uses prophecy as hook device. Flashback sequence.
+- BKR-Hasim-LP3: Brahmand Ka Rakshak — hook is a divine warning dialogue. Jumbled sequence.
+
+---
+
+DRAMA GENRE (Shows: Beggar Husband, Billionaire Hidden Wife, Ek Stranger Se Pyar, Empire of Hidden King, Fated To Be Yours, His Secret Fortune, Malang, My Mysterious Princess, Ruthless):
+
+1. RELATIONSHIP TENSION IS THE HOOK: Drama hooks always stem from the central relationship — betrayal, hidden identity, forbidden love, or power imbalance between two characters.
+
+2. IDENTITY CONCEALMENT PATTERN: Most drama shows here follow the "hidden identity" pattern (billionaire pretending to be poor, princess in disguise, king hiding his empire). The promo hook must tease the SECRET, not the surface story.
+
+3. EMOTIONAL VULNERABILITY + POWER: Best drama promos contrast vulnerability with power. The character is simultaneously powerful AND emotionally exposed. This contrast creates irresistible tension.
+
+4. HINGLISH TONE: Drama promos use natural Hinglish — predominantly Hindi dialogue with English words woven in naturally. Avoid full English or formal Hindi.
+
+5. FEMALE LEAD AGENCY: In shows with strong female leads (My Mysterious Princess, Fated To Be Yours), the promo must show her making a choice or confronting someone — not just reacting. Her agency is what makes the audience root for her.
+
+TOP P0 DRAMA PROMOS TO MIRROR:
+- MMP-Shailendra-LP1 & LP2: My Mysterious Princess — hook is her identity revelation moment. Context establishes she's hiding something massive. Sequence is ORIGINAL but fast-paced.
+- EHK-Prakash-LP2-Hasim-V3: Empire of Hidden King — hook reveals the king's real power in a single defiant line. Flashback sequence from weakness to power.
+- BRHW-Akshay-LP1: Billionaire Hidden Wife — hook is the wife discovering the truth. Emotional stakes established in 3 context lines.
+- BH-Prakash-LP1 & V1: Beggar Husband — hook uses the humiliation moment as entry point. Reversal (poor man is actually rich) is the core engine.
+- HSF-Akshay-LP5: His Secret Fortune — uses the "secret revealed" moment as the climax setup in CTA.
+
+---
+
+HORROR GENRE (Show: Shiva Ek Pretyodha):
+
+1. DREAD BEFORE REVEAL: Horror hooks must create dread, not just describe horror. The audience must feel something wrong before they're shown what it is.
+
+2. SUPERNATURAL IDENTITY HOOK: The hook must establish that the protagonist is dealing with something beyond natural — but not explain it. Tease the supernatural, don't define it.
+
+3. ISOLATION ATMOSPHERE: Horror context lines must establish loneliness, darkness, or helplessness. The character must feel trapped.
+
+4. SLOWER PACING THAN OTHER GENRES: Unlike fantasy (which accelerates hard), horror promos build slowly and then SPIKE suddenly at the end.
+
+TOP P0 HORROR PROMO TO MIRROR:
+- STDL-Hasim-LP2-V1: Shiva Ek Pretyodha — hook is a supernatural warning. Atmosphere is established through sensory narration (sounds, darkness, cold). CTA questions focus on the mystery of what Shiva actually is.
+
+═══════════════════════════════════════════════
+SECTION B — UNIVERSAL PROMO WRITING RULES
+(Apply to ALL genres)
+═══════════════════════════════════════════════
+
+RULE 1 — THE HOOK LINE
+- Must be a CHARACTER DIALOGUE 95% of the time
+- Only 5% of the time: a powerful descriptive statement or question works
+- STRICT LIMIT: Maximum 12-13 words. Hard ceiling. No exceptions.
+- Must be scroll-stopping — it teases the most dramatic moment
+- Must be specific to THIS show — cannot fit any other show
+- Test: Does it make someone want to know what happened before/after this line?
+
+RULE 2 — CONTEXT LINES (2-4 lines only)
+- Answers: Who? Where? What are they doing? What are they stuck in?
+- Does NOT summarize the story
+- Creates intrigue, not clarity
+- Tone must match the show's genre
+
+RULE 3 — SEQUENCE TYPE
+Choose ONE of three based on the story structure:
+
+A. ORIGINAL SEQUENCE: Chronological. Used when natural story order creates enough tension. Best for linear dramas and love stories.
+
+B. FLASHBACK SEQUENCE: Start in present crisis → flash to origin → return to present (now heavier). Best for revenge, relationship breakdown, secrets. The flashback must RECONTEXTUALIZE something, not just add backstory.
+
+C. JUMBLED SEQUENCE: Non-chronological. Shocking moment first → earlier tension → origin → consequence → cliffhanger. Best for thrillers, crime, multi-timeline, twist-heavy shows. The jumble must have emotional logic even if not chronological.
+
+RULE 4 — SCENE DESIGN (Every scene must follow this)
+Step 1: TENSION BEFORE THE SCENE — create curiosity/dread BEFORE showing the scene
+Step 2: REVEAL CHARACTER through exactly ONE of:
+  - Internal thought (narration of what they feel/think)
+  - Dialogue (what they say — max 25 words)
+  - Action (what they physically do that reveals character)
+Never show a character passively existing in a scene.
+
+RULE 5 — TRANSITIONS
+- Every scene transition must be SMOOTH — no jerk for the audience
+- Use connective narration that links scenes by EMOTION, not just plot logic
+- Test: If you removed the bridge narration, would the cut feel abrupt? If yes, the bridge is working.
+
+RULE 6 — PACING
+- Middle section: steady, let emotions breathe
+- After midpoint: ACCELERATE — shorter lines, sharper dialogue, faster cuts
+- Audience must feel: "Something BIG is about to happen"
+- Skip unimportant scenes completely — only show scenes that raise or answer a question
+
+RULE 7 — EPISODE 1 CALLBACK (Just before ending)
+Option A (Preferred): Insert first 3-4 lines of Episode 1 + then summarize Episode 1 in 1-2 lines
+Option B: Just summarize Episode 1 in 2-3 emotional lines
+Purpose: Full-circle emotional moment before the grand ending
+
+RULE 8 — THE ENDING
+- Must feel GRAND and CINEMATIC
+- Energy peaks here — biggest emotional/visual moment of promo
+- Must NOT resolve anything — leave maximum tension
+- Final image/moment must be unforgettable
+
+RULE 9 — CTA QUESTIONS (3-4 questions at the end)
+Order:
+1. Question 1: Latest cliffhanger — most recent unresolved event
+2. Question 2: Earlier mystery from deeper in the story
+3. Question 3: Character/relationship mystery left open in promo
+4. Question 4 (optional): Thematic/stakes question about the overall conflict
+Rules: Each question answerable only by watching. Urgent tone. Max 10 words each. Escalating stakes.
+
+RULE 10 — NARRATION vs DIALOGUE RATIO
+70% Narration : 30% Dialogue — NON-NEGOTIABLE
+- Narration carries structure, tone, and transitions
+- Dialogue used only when character's own words hit harder than any narration
+- HARD LIMIT: No single dialogue chunk can exceed 25 words
+- Language: Match show's tone — Hinglish for drama, Sanskrit-influenced for fantasy, atmospheric for horror
+
+═══════════════════════════════════════════════
+SECTION C — EVALUATION FRAMEWORK
+═══════════════════════════════════════════════
+
+PARAMETER 1 — HOOK LINE QUALITY (Weight: 25%)
+Score 9-10: Dialogue, under 13 words, show-specific, genuinely scroll-stopping
+Score 7-8: Dialogue, under 13 words, but slightly generic OR slightly over word limit
+Score 5-6: Not a dialogue, or too long, or could belong to any show
+Score 1-4: No clear hook, descriptive opening, or hook reveals too much
+
+PARAMETER 2 — CONTEXT CLARITY (Weight: 10%)
+Score 9-10: 2-4 lines, answers who/where/what/tension, creates intrigue not summary
+Score 7-8: Slightly too long or answers too many questions (over-explains)
+Score 5-6: Vague — doesn't establish clear who/where/what
+Score 1-4: Missing entirely or replaces hook function
+
+PARAMETER 3 — SEQUENCE LOGIC (Weight: 15%)
+Score 9-10: Right sequence type chosen, every scene earns its place, emotional logic clear
+Score 7-8: Right type but one or two scenes don't earn their place
+Score 5-6: Wrong sequence type for this story, OR scenes feel random
+Score 1-4: No discernible sequence logic — feels like a summary not a promo
+
+PARAMETER 4 — SCENE DESIGN (Weight: 15%)
+Score 9-10: Every scene has tension setup before reveal + character shown through action/dialogue/thought
+Score 7-8: Most scenes follow this but 1-2 are passive or lack tension setup
+Score 5-6: More than half the scenes show characters passively
+Score 1-4: No scene design — scenes are just plot descriptions
+
+PARAMETER 5 — PACING & TRANSITIONS (Weight: 15%)
+Score 9-10: Clear acceleration after midpoint, all transitions smooth with emotional bridges
+Score 7-8: Good pacing but 1-2 transitions feel abrupt or pacing doesn't accelerate enough
+Score 5-6: Flat pace throughout OR multiple jerky transitions
+Score 1-4: No pacing awareness — reads at same speed from start to finish
+
+PARAMETER 6 — ENDING & CTA (Weight: 10%)
+Score 9-10: Grand ending + exactly 3-4 specific urgent CTA questions in correct order
+Score 7-8: Good ending but CTA questions are slightly generic or wrong order
+Score 5-6: Ending is underwhelming OR only 1-2 CTA questions
+Score 1-4: No clear ending build OR CTA is completely generic
+
+PARAMETER 7 — NARRATION/DIALOGUE RATIO (Weight: 10%)
+Score 9-10: Approximately 70:30, no dialogue exceeds 25 words
+Score 7-8: Ratio slightly off (65:35 or 75:25) but dialogues stay under 25 words
+Score 5-6: Too much dialogue (below 60:40) OR dialogues regularly exceed 25 words
+Score 1-4: Ratio is reversed (more dialogue than narration)
+
+FINAL SCORE CALCULATION:
+Final = (Hook×0.25) + (Context×0.10) + (Sequence×0.15) + (SceneDesign×0.15) + (Pacing×0.15) + (Ending×0.10) + (Ratio×0.10)
+
+PERFORMANCE TIER:
+P0 = 8.5 to 10.0 → Top performer, ready to publish
+P1 = 6.5 to 8.4 → Good, needs specific fixes before publishing
+P2 = Below 6.5 → Weak, major rework required
+
+═══════════════════════════════════════════════
+SECTION D — OUTPUT FORMAT
+═══════════════════════════════════════════════
+
+Return your evaluation as a valid JSON object with this exact structure:
+
+{
+  "overallScore": 7.4,
+  "tier": "P1",
+  "tierLabel": "Good script — needs specific fixes before publishing",
+  "parameterScores": {
+    "hookLine": { "score": 8, "feedback": "Strong dialogue hook but runs 15 words — trim by 2-3 words" },
+    "context": { "score": 7, "feedback": "Good setup but 5th line is unnecessary — cut it" },
+    "sequence": { "score": 8, "feedback": "Jumbled sequence chosen correctly for this thriller story" },
+    "sceneDesign": { "score": 6, "feedback": "Scene 3 shows character passively — he must DO something" },
+    "pacing": { "score": 7, "feedback": "Transitions mostly smooth but Scene 4 to 5 feels abrupt" },
+    "ending": { "score": 8, "feedback": "Grand ending works, but Question 2 in CTA is too vague" },
+    "ratio": { "score": 9, "feedback": "Good 70:30 ratio maintained throughout" }
   },
-  Drama: {
-    keywords: ['love', 'betrayal', 'secret', 'heart', 'promise', 'truth', 'lies', 'marriage', 'sacrifice', 'forgive', 'revenge', 'jealous', 'desire', 'passion', 'grief', 'loss', 'trust', 'deceive', 'identity', 'hidden', 'billionaire', 'princess', 'king', 'reveal', 'affair', 'divorce', 'cheat', 'mohabbat', 'ishq', 'dil', 'raaz', 'jhooth', 'sach', 'rishta', 'dhoka', 'khwaab', 'dard', 'aansoo', 'pyar', 'wafa', 'bewafa'],
-    p0Scripts: [
-      { id: 'MMP-Shailendra-LP1', show: 'My Mysterious Princess', hookPattern: 'Female lead identity revelation — secret is the hook' },
-      { id: 'EHK-Prakash-LP2-Hasim-V3', show: 'Empire of Hidden King', hookPattern: 'Hidden king power revealed through single defiant line' },
-      { id: 'BH-Prakash-LP1', show: 'Beggar Husband', hookPattern: 'Humiliation moment as entry — reversal is the engine' },
-      { id: 'BRHW-Akshay-LP1', show: 'Billionaire Hidden Wife', hookPattern: 'Wife discovers truth — shock and betrayal fused in one line' },
-    ],
-    specificFeedback: [
-      { check: ['dil', 'mohabbat', 'ishq', 'raaz', 'sach', 'rishta', 'dard', 'pyar'], good: 'Hinglish tone detected — correct emotional register for drama genre', bad: 'Use natural Hinglish — blend Hindi emotional words (dil, mohabbat, raaz) with English for authentic drama tone' },
-      { check: ['hidden', 'secret', 'identity', 'disguise', 'real', 'actually', 'truly', 'raaz', 'asli', 'pehchaan'], good: 'Hidden identity / secret element present — core drama engine working', bad: 'Add a hidden identity or concealed secret — P0 drama promos tease the secret without revealing it; this is what hooks the listener' },
-    ],
+  "whatIsWorking": [
+    "Specific point 1 with reference to actual line in the script",
+    "Specific point 2 with reference to actual line in the script",
+    "Specific point 3 with reference to actual line in the script"
+  ],
+  "weakPoints": [
+    {
+      "issue": "Specific problem description",
+      "whyItFails": "Explanation of why this breaks the promo",
+      "location": "Reference to where in the script this occurs"
+    }
+  ],
+  "rewriteSuggestions": [
+    {
+      "original": "The actual line or section from the submitted script",
+      "rewritten": "Your improved version",
+      "reason": "Why the rewrite is stronger"
+    }
+  ],
+  "p0Comparison": {
+    "closestP0Script": "TWAR-Hasim-LP1 (Fantasy genre, similar protagonist arc)",
+    "whatP0DoesDifferently": "Specific explanation of what the P0 script does that this one does not",
+    "keyLessons": [
+      "Lesson 1 drawn from the P0 script applicable to this submission",
+      "Lesson 2",
+      "Lesson 3"
+    ]
   },
-  Horror: {
-    keywords: ['dark', 'fear', 'terror', 'haunted', 'demon', 'blood', 'nightmare', 'evil', 'curse', 'shadow', 'ghost', 'monster', 'creature', 'scream', 'death', 'murder', 'escape', 'trapped', 'possessed', 'sinister', 'dread', 'prey', 'lurk', 'darr', 'bhoot', 'shaitan', 'andhere', 'maut', 'atma', 'buri', 'pretyodha', 'supernatural'],
-    p0Scripts: [
-      { id: 'STDL-Hasim-LP2-V1', show: 'Shiva Ek Pretyodha', hookPattern: 'Supernatural warning — dread before reveal, not through reveal' },
-    ],
-    specificFeedback: [
-      { check: ['sound', 'shadow', 'cold', 'dark', 'silence', 'whisper', 'scream', 'andhere', 'aawaz', 'saans', 'paon'], good: 'Sensory atmospheric narration present — key P0 horror technique', bad: 'Add sensory details (sounds, darkness, cold silence, footsteps) — P0 horror (STDL) builds dread through senses, not description' },
-      { check: ['alone', 'lonely', 'isolated', 'trapped', 'helpless', 'akela', 'darr', 'koi nahi', 'chhod'], good: 'Isolation atmosphere established — correct character positioning for horror', bad: 'Establish isolation and helplessness in context lines — character must feel completely alone and trapped' },
-    ],
-  },
+  "genreSpecificFeedback": "Fantasy/Drama/Horror specific observations based on genre patterns above"
 }
 
-// ─── TEXT UTILITIES ───────────────────────────────────────────────────────────
+IMPORTANT: Return ONLY the JSON. No explanation before or after. No markdown code fences. Pure JSON only.`
+
+const P0_SCRIPTS = {
+  fantasy: [
+    { id: 'TWAR-Akshay-LP1-30Mins', show: 'The Warrior', hookPattern: 'Protagonist defiant dialogue establishing identity under threat', sequenceType: 'JUMBLED', keyStrengths: ['World-building hook', 'Power hierarchy established in context', 'Cosmic stakes in CTA'] },
+    { id: 'TWAR-Hasim-LP1', show: 'The Warrior', hookPattern: 'Enemy threat as hook — immediate conflict polarity', sequenceType: 'JUMBLED', keyStrengths: ['Enemy voice as hook', 'Protagonist at lowest point first', 'Cosmic not personal stakes'] },
+    { id: 'KODGN-Hasim-LP1', show: 'King of Dragon', hookPattern: 'Dragon mythology via threat or warning in first 2 lines', sequenceType: 'JUMBLED', keyStrengths: ['Mythology in first 2 context lines', 'Hard pacing acceleration at midpoint', 'CTA escalates to cosmic'] },
+    { id: 'PTS-Akshay-LP1', show: 'Purple Thunder Sovereign', hookPattern: 'Power declaration — short, specific, world-defining', sequenceType: 'ORIGINAL', keyStrengths: ['Hook is a statement not an event', 'Cosmic framing of personal conflict'] },
+    { id: 'PG-Hasim-LP1', show: 'Primordial God', hookPattern: 'Cosmic stakes in hook — Srishti ka pahla yoddha framing', sequenceType: 'ORIGINAL', keyStrengths: ['Primordial/first framing', 'Absolute cosmic stakes', 'Sanskrit divine vocabulary'] },
+    { id: 'DFB-Hasim-LP1', show: 'Divine Flame Burst', hookPattern: 'Prophecy as hook device — flame is destiny not choice', sequenceType: 'FLASHBACK', keyStrengths: ['Prophecy creates inevitability', 'Flashback shows divine origin', 'Fire vocabulary creates sensory hook'] },
+    { id: 'BKR-Hasim-LP3', show: 'Brahmand Ka Rakshak', hookPattern: 'Divine warning dialogue — cosmic protector under threat', sequenceType: 'JUMBLED', keyStrengths: ['Immediate cosmic stakes', 'Enemy as existential threat', 'Jumbled sequence reveals peak first'] },
+  ],
+  drama: [
+    { id: 'MMP-Shailendra-LP1', show: 'My Mysterious Princess', hookPattern: 'Female lead identity revelation — secret is the hook', sequenceType: 'ORIGINAL', keyStrengths: ['Female agency shown in hook', 'Identity concealment sustained throughout', 'Hinglish tone natural'] },
+    { id: 'MMP-Shailendra-LP2', show: 'My Mysterious Princess', hookPattern: 'Princess agency moment — she takes control, defies expectation', sequenceType: 'ORIGINAL', keyStrengths: ['Princess as active agent', 'Mystery sustained through selective revelation'] },
+    { id: 'EHK-Prakash-LP2-Hasim-V3', show: 'Empire of Hidden King', hookPattern: 'Hidden king power revealed through single defiant line', sequenceType: 'FLASHBACK', keyStrengths: ['Weakness-to-power arc visible in flashback', 'Hidden identity revealed through action not dialogue'] },
+    { id: 'BRHW-Akshay-LP1', show: 'Billionaire Hidden Wife', hookPattern: 'Wife discovers truth — shock and betrayal fused in one line', sequenceType: 'ORIGINAL', keyStrengths: ['Emotional stakes in context lines', 'Discovery moment creates empathy'] },
+    { id: 'BH-Prakash-LP1', show: 'Beggar Husband', hookPattern: 'Humiliation moment as entry — reversal is the engine', sequenceType: 'ORIGINAL', keyStrengths: ['Irony of rich-man-as-beggar established fast', 'Emotional reversal drives CTA'] },
+    { id: 'HSF-Akshay-LP5', show: 'His Secret Fortune', hookPattern: 'Secret fortune revelation sets up entire promo arc', sequenceType: 'JUMBLED', keyStrengths: ['Secret-reveal as climax setup', 'CTA escalates personal to financial stakes'] },
+  ],
+  horror: [
+    { id: 'STDL-Hasim-LP2-V1', show: 'Shiva Ek Pretyodha', hookPattern: 'Supernatural warning — dread before reveal, not through reveal', sequenceType: 'ORIGINAL', keyStrengths: ['Sensory atmospheric narration', 'Supernatural identity teased never explained', 'Isolation in context lines', 'Slow build with sudden spike at end'] },
+  ]
+}
+
+function buildUserPrompt(script, showName, genre, episodeRange) {
+  const p0Examples = (P0_SCRIPTS[(genre || 'fantasy').toLowerCase()] || P0_SCRIPTS.fantasy)
+  const p0Summary = p0Examples.map(s =>
+    `- ${s.id} (${s.show}): Hook: "${s.hookPattern}". Sequence: ${s.sequenceType}. Strengths: ${s.keyStrengths.slice(0, 2).join('; ')}`
+  ).join('\n')
+
+  return `Evaluate this promo script for the PocketFM show "${showName}" (${genre} genre, episodes ${episodeRange}).
+
+SUBMITTED PROMO SCRIPT:
+---
+${script}
+---
+
+RELEVANT P0 BENCHMARK SCRIPTS FOR THIS GENRE (${genre}):
+${p0Summary}
+
+Evaluate strictly against all rules in the system prompt. Be specific — quote actual lines from the submitted script. A P0 score requires ALL 7 parameters to be strong. Do not give high scores unless genuinely earned.
+
+Return ONLY valid JSON. No preamble. No markdown fences.`
+}
+
+// ─── RULE-BASED FALLBACK (used when no API key) ───────────────────────────────
 function splitSentences(text) {
-  return text.split(/(?<=[.!?।])\s+|(?<=।)\s*/g).map(s => s.trim()).filter(s => s.length > 3)
+  return text.split(/(?<=[.!?।])\s+/g).map(s => s.trim()).filter(s => s.length > 3)
 }
-
-function wordCount(text) {
-  return text.split(/\s+/).filter(w => w.length > 0).length
-}
-
+function wc(text) { return text.split(/\s+/).filter(w => w.length > 0).length }
 function extractDialogues(text) {
-  const matches = []
-  const patterns = [/"([^"]+)"/g, /“([^”]+)”/g, /‘([^’]+)’/g]
-  for (const pattern of patterns) {
-    let m
-    while ((m = pattern.exec(text)) !== null) matches.push(m[1])
-  }
-  return matches
+  const m = []; const re = /"([^"]+)"|"([^"]+)"/g; let x
+  while ((x = re.exec(text)) !== null) m.push(x[1] || x[2])
+  return m
 }
-
-function countQuestions(text) {
-  return (text.match(/\?/g) || []).length
-}
-
-function avgWordsPerSentence(sentences) {
-  if (!sentences.length) return 0
-  return sentences.reduce((s, x) => s + wordCount(x), 0) / sentences.length
-}
-
-function includes(lower, words) {
-  return words.filter(w => lower.includes(w))
-}
-
-// ─── PARAMETER 1: HOOK LINE QUALITY (weight 25%) ──────────────────────────────
-function scoreHookLine(sentences, fullText) {
-  const first = sentences[0] || ''
-  const opening = sentences.slice(0, 2).join(' ')
-  const openingLower = opening.toLowerCase()
-  const firstWordCount = wordCount(first)
-  const dialogs = extractDialogues(opening)
-
-  let score = 3
-  const parts = []
-
-  if (dialogs.length > 0) {
-    score += 3
-    parts.push('Hook uses character dialogue — correct technique (Rule 1: dialogue 95% of the time)')
-  } else {
-    parts.push('Hook is narration, not dialogue — replace the opening with a character\'s spoken line for maximum impact')
-  }
-
-  if (firstWordCount >= 4 && firstWordCount <= 13) {
-    score += 2
-    parts.push(`Opening line is ${firstWordCount} words — within the 13-word hard limit`)
-  } else if (firstWordCount > 13) {
-    score -= 1
-    parts.push(`Hook runs ${firstWordCount} words — trim to under 13 words (Rule 1: hard ceiling, no exceptions)`)
-  } else if (firstWordCount < 4) {
-    parts.push('Opening line is too short to establish context')
-  }
-
-  if (/\?/.test(first)) {
-    score += 1
-    parts.push('Opening question creates immediate curiosity — good hook device')
-  }
-
-  const conflictWords = ['threat', 'war', 'danger', 'betrayed', 'kill', 'destroy', 'trapped', 'secret', 'truth', 'lies', 'never', 'stop', 'naam', 'marne', 'maar', 'khatam', 'nahi', 'kabhi', 'end', 'final', 'last']
-  if (conflictWords.some(w => openingLower.includes(w))) {
-    score += 1
-    parts.push('Conflict or crisis element in hook — good tension signal')
-  }
-
-  if (/!/.test(first)) score += 0.5
-
-  score = Math.max(1, Math.min(10, Math.round(score)))
-  if (!parts.length) parts.push('Hook needs stronger dramatic tension — use a character\'s spoken words to open')
-
-  return { score, feedback: parts.join('. ') }
-}
-
-// ─── PARAMETER 2: CONTEXT CLARITY (weight 10%) ───────────────────────────────
-function scoreContext(sentences) {
-  const contextBlock = sentences.slice(1, 7)
-  const count = contextBlock.length
-  const text = contextBlock.join(' ').toLowerCase()
-
-  let score = 4
-  const parts = []
-
-  if (count >= 2 && count <= 4) {
-    score += 3
-    parts.push(`Context is ${count} lines — ideal range (Rule 2: 2-4 lines only)`)
-  } else if (count === 1) {
-    score += 1
-    parts.push('Context is only 1 line — expand to 2-4 lines to establish who, where, and what stakes exist')
-  } else if (count === 5) {
-    score += 2
-    parts.push('Context is 5 lines — slightly over. Cut 1 line to tighten.')
-  } else if (count > 5) {
-    parts.push(`Context is ${count} lines — too long. Cut to 2-4 lines. Over-explanation kills mystery.`)
-  }
-
-  const hasWho = includes(text, ['he ', 'she ', 'they ', 'his ', 'her ', 'uski', 'unka', 'woh ', 'iska', 'yeh ']).length > 0
-  const hasWhere = includes(text, ['palace', 'kingdom', 'city', 'village', 'world', 'realm', 'place', 'duniya', 'mahal', 'sheher', 'forest', 'jungl', 'ghar', 'desh']).length > 0
-  const hasWhat = includes(text, ['must', 'will', 'trying', 'fighting', 'hiding', 'running', 'seeking', 'chahta', 'karna', 'karna hai', 'ladna', 'bachna', 'dhundh']).length > 0
-
-  const setupCount = [hasWho, hasWhere, hasWhat].filter(Boolean).length
-  if (setupCount >= 2) {
-    score += 2
-    parts.push('Context establishes who/where/what effectively — creates situation without summarizing plot')
-  } else {
-    parts.push('Context should establish: who the character is, where they are, and what is at stake — without telling the full story')
-  }
-
-  score = Math.max(1, Math.min(10, Math.round(score)))
-  return { score, feedback: parts.join('. ') }
-}
-
-// ─── PARAMETER 3: SEQUENCE LOGIC (weight 15%) ────────────────────────────────
-function scoreSequence(sentences, fullText) {
-  const lower = fullText.toLowerCase()
-  const first = (sentences[0] || '').toLowerCase()
-
-  let score = 4
-  const parts = []
-
-  const flashbackMarkers = ['ek din', 'years ago', 'pehle', 'pahle', 'shuru', 'bachpan', 'us waqt', 'tab se', 'jab se', 'before', 'used to', 'once upon', 'past mein', 'purane']
-  const hasFlashback = flashbackMarkers.some(m => lower.includes(m))
-
-  const crisisStart = /^(kill|die|destroy|war|fight|betray|truth|secret|help|stop|save|never|don't|mat|nahi|ruk|bach)/i.test(first)
-  const hasDialogueOpen = extractDialogues(sentences.slice(0, 2).join(' ')).length > 0
-
-  const transMarkers = ['but', 'however', 'yet', 'suddenly', 'then', 'now', 'par', 'lekin', 'tab', 'tabhi', 'aur tab', 'magar', 'aakhir', 'phir bhi', 'is liye', 'kyunki', 'meanwhile', 'jab', 'toh', 'phir', 'aur fir']
-  const transCount = transMarkers.filter(m => lower.includes(m)).length
-
-  if (crisisStart || hasDialogueOpen) {
-    score += 3
-    parts.push('Opens at peak crisis or with dialogue — strong JUMBLED/flashback sequence technique (best P0 promos start at the climax)')
-  } else {
-    parts.push('Consider opening at the most dramatic moment first (JUMBLED sequence) — P0 promos drop the audience into peak crisis immediately')
-  }
-
-  if (transCount >= 4) {
-    score += 2
-    parts.push(`${transCount} scene transitions detected — good narrative flow between scenes`)
-  } else if (transCount >= 2) {
-    score += 1
-    parts.push(`${transCount} transitions — add more connective narration linking scenes by emotion (Rule 5)`)
-  } else {
-    parts.push('Very few scene transitions — scenes feel disconnected. Add emotional bridges between each scene.')
-  }
-
-  if (hasFlashback) {
-    score += 1
-    parts.push('Flashback structure detected — effective for showing character origin or reversal arc')
-  }
-
-  const endText = sentences.slice(-4).join(' ')
-  if (countQuestions(endText) >= 2) {
-    score += 1
-    parts.push('Ending leaves questions open — correct cliffhanger technique (Rule 8: must NOT resolve anything)')
-  }
-
-  score = Math.max(1, Math.min(10, Math.round(score)))
-  return { score, feedback: parts.join('. ') }
-}
-
-// ─── PARAMETER 4: SCENE DESIGN (weight 15%) ──────────────────────────────────
-function scoreSceneDesign(sentences, fullText) {
-  const lower = fullText.toLowerCase()
-
-  let score = 3
-  const parts = []
-
-  const actionWords = ['runs', 'fights', 'decides', 'realizes', 'discovers', 'confronts', 'refuses', 'chooses', 'challenges', 'reveals', 'grabs', 'pulls', 'pushes', 'breaks', 'bhaaga', 'ladha', 'samjha', 'jaana', 'dekha', 'bola', 'kiya', 'liya', 'daudta', 'roka', 'mara']
-  const thoughtWords = ['knows', 'feels', 'thinks', 'realizes', 'understands', 'believes', 'fears', 'hopes', 'jaanta', 'samajhta', 'maanta', 'darta', 'chahta', 'sochta', 'mehsoos', 'pata hai', 'jaan gaya']
-  const passiveWords = [' is ', ' was ', ' are ', ' were ', ' sits ', ' stands ', ' lives ', ' stays ', ' remains ']
-
-  const actionCount = actionWords.filter(w => lower.includes(w)).length
-  const thoughtCount = thoughtWords.filter(w => lower.includes(w)).length
-  const dialogues = extractDialogues(fullText)
-  const passiveCount = passiveWords.filter(w => lower.includes(w)).length
-  const activeTotal = actionCount + thoughtCount + (dialogues.length * 2)
-
-  if (activeTotal >= 8) {
-    score += 5
-    parts.push('Characters are strongly active — they act, think, and speak in their own voice (Rule 4: character revealed through action/dialogue/thought)')
-  } else if (activeTotal >= 4) {
-    score += 3
-    parts.push('Some active character moments present — add more scenes where characters physically act or voice their internal thoughts')
-  } else {
-    score += 1
-    parts.push('Scenes feel passive — Rule 4 requires every scene to reveal character through action, dialogue, or internal thought (never passive existence)')
-  }
-
-  if (dialogues.length >= 2) {
-    score += 2
-    parts.push(`${dialogues.length} dialogue sections — characters speak in their own voice, which creates emotional connection`)
-  } else if (dialogues.length === 1) {
-    score += 1
-    parts.push('Only 1 dialogue section — add 1-2 more character lines to make them feel alive')
-  } else {
-    parts.push('No dialogue detected — at least 2-3 character lines are needed for scene design (Rule 10: 30% dialogue target)')
-  }
-
-  if (passiveCount > actionCount + 2) {
-    score -= 1
-    parts.push('Too many passive descriptions ("he was...", "she is...") — convert to active moments')
-  }
-
-  score = Math.max(1, Math.min(10, Math.round(score)))
-  return { score, feedback: parts.join('. ') }
-}
-
-// ─── PARAMETER 5: PACING & TRANSITIONS (weight 15%) ──────────────────────────
-function scorePacing(sentences, fullText) {
-  if (sentences.length < 4) return { score: 4, feedback: 'Script too short to fully evaluate pacing. A promo needs 150-350 words.' }
-
-  let score = 4
-  const parts = []
-
-  const mid = Math.floor(sentences.length / 2)
-  const firstHalfAvg = avgWordsPerSentence(sentences.slice(0, mid))
-  const secondHalfAvg = avgWordsPerSentence(sentences.slice(mid))
-
-  if (secondHalfAvg < firstHalfAvg * 0.8) {
-    score += 4
-    parts.push(`Clear acceleration in second half (avg ${Math.round(secondHalfAvg)} words/sentence vs ${Math.round(firstHalfAvg)} in first half) — Rule 6: audience must feel "something BIG is about to happen"`)
-  } else if (secondHalfAvg <= firstHalfAvg) {
-    score += 2
-    parts.push(`Slight pacing variation (${Math.round(firstHalfAvg)} → ${Math.round(secondHalfAvg)} words/sentence) — good direction but sharpen the acceleration after the midpoint`)
-  } else {
-    parts.push(`Second half (avg ${Math.round(secondHalfAvg)} words/sentence) is slower than first half (${Math.round(firstHalfAvg)}) — Rule 6: after midpoint, use shorter lines, sharper dialogue, faster cuts`)
-  }
-
-  const secondHalfLower = sentences.slice(mid).join(' ').toLowerCase()
-  const urgency = includes(secondHalfLower, ['now', 'must', 'only', 'last', 'final', 'never', 'always', 'ab', 'sirf', 'akhiri', 'aakhir', 'every', 'everything'])
-  if (urgency.length >= 3) {
-    score += 1
-    parts.push('Strong urgency language in second half — momentum building correctly')
-  }
-
-  const total = wordCount(fullText)
-  if (total < 100) {
-    score -= 2
-    parts.push(`Script is only ${total} words — a complete promo needs 150-350 words to hit all required elements`)
-  } else if (total >= 150 && total <= 400) {
-    parts.push(`Length is good at ${total} words — within ideal promo range`)
-  } else if (total > 450) {
-    score -= 1
-    parts.push(`Script is ${total} words — consider trimming; promos work best under 400 words for audio attention spans`)
-  }
-
-  score = Math.max(1, Math.min(10, Math.round(score)))
-  return { score, feedback: parts.join('. ') }
-}
-
-// ─── PARAMETER 6: ENDING & CTA (weight 10%) ──────────────────────────────────
-function scoreEnding(sentences, fullText) {
-  const endSentences = sentences.slice(-6)
-  const endText = endSentences.join(' ')
-  const endLower = endText.toLowerCase()
-  const qCount = countQuestions(endText)
-
-  let score = 3
-  const parts = []
-
-  if (qCount >= 3 && qCount <= 4) {
-    score += 5
-    parts.push(`${qCount} CTA questions — exactly right (Rule 9: 3-4 questions required, each answerable only by listening)`)
-  } else if (qCount === 2) {
-    score += 3
-    parts.push('2 CTA questions — add 1 more. Rule 9 requires 3-4 urgent questions at escalating stakes')
-  } else if (qCount >= 5) {
-    score += 3
-    parts.push(`${qCount} CTA questions — slightly too many. Trim to 3-4 for maximum impact`)
-  } else if (qCount === 1) {
-    score += 1
-    parts.push('Only 1 CTA question — Rule 9 requires 3-4. Structure: latest cliffhanger → earlier mystery → character mystery → optional thematic question')
-  } else {
-    parts.push('No CTA questions — Rule 9 requires exactly 3-4 urgent questions at end. This is what drives listener action.')
-  }
-
-  if (includes(endLower, ['pocket fm', 'pocketfm', 'listen', 'tune in', 'episode', 'available', 'sirf', 'exclusively', 'only on']).length > 0) {
-    score += 1
-    parts.push('Platform CTA or urgency call present — good')
-  }
-
-  if (includes(endLower, ['everything', 'world', 'final', 'last', 'sab kuch', 'duniya', 'akhiri', 'destiny', 'fate', 'aakhir', 'truth', 'sach', 'astitva', 'end']).length > 0) {
-    score += 1
-    parts.push('Grand language at ending — Rule 8: ending must feel cinematic and peak energy')
-  } else {
-    parts.push('Ending language needs to feel grander — Rule 8: biggest emotional/visual moment of the promo, energy peaks here')
-  }
-
-  score = Math.max(1, Math.min(10, Math.round(score)))
-  return { score, feedback: parts.join('. ') }
-}
-
-// ─── PARAMETER 7: NARRATION/DIALOGUE RATIO (weight 10%) ──────────────────────
-function scoreRatio(fullText) {
-  const dialogues = extractDialogues(fullText)
-  const dialogueWords = dialogues.reduce((s, d) => s + wordCount(d), 0)
-  const totalWords = wordCount(fullText)
-  const longestDialogue = dialogues.reduce((max, d) => Math.max(max, wordCount(d)), 0)
-  const ratio = totalWords > 0 ? dialogueWords / totalWords : 0
-
-  let score = 5
-  const parts = []
-
-  if (ratio >= 0.22 && ratio <= 0.38) {
-    score += 4
-    parts.push(`Narration/dialogue ratio is ${Math.round((1 - ratio) * 100)}:${Math.round(ratio * 100)} — very close to the required 70:30 (Rule 10: non-negotiable)`)
-  } else if (ratio > 0.38 && ratio <= 0.50) {
-    score += 2
-    parts.push(`Dialogue is ${Math.round(ratio * 100)}% of total text — slightly high. Remove 1-2 dialogue sections. Target is 30% dialogue, 70% narration.`)
-  } else if (ratio > 0.50) {
-    score -= 1
-    parts.push(`Dialogue is ${Math.round(ratio * 100)}% of total — far too much. Rule 10: 70% narration, 30% dialogue is non-negotiable. Narration carries structure and transitions.`)
-  } else if (ratio < 0.15 && dialogues.length === 0) {
-    score -= 1
-    parts.push('No dialogue detected — add 2-3 character lines to bring the story to life (Rule 10 target: 30% dialogue)')
-  } else if (ratio < 0.15) {
-    score += 1
-    parts.push(`Dialogue is only ${Math.round(ratio * 100)}% — add 1-2 more character moments to reach the 30% target`)
-  }
-
-  if (longestDialogue > 25) {
-    score -= 2
-    parts.push(`Longest dialogue chunk is ${longestDialogue} words — exceeds the 25-word hard limit (Rule 10). Break it into two shorter exchanges.`)
-  } else if (longestDialogue > 0 && longestDialogue <= 25) {
-    parts.push(`All dialogue chunks are within the 25-word limit ✓`)
-  }
-
-  score = Math.max(1, Math.min(10, Math.round(score)))
-  return { score, feedback: parts.join('. ') }
-}
-
-// ─── GENRE-SPECIFIC FEEDBACK ──────────────────────────────────────────────────
-function buildGenreFeedback(fullText, genre) {
-  const lower = fullText.toLowerCase()
-  const data = GENRE_DATA[genre] || GENRE_DATA.Fantasy
-  const matchCount = data.keywords.filter(k => lower.includes(k)).length
-  const strength = matchCount >= 10 ? 'strong' : matchCount >= 5 ? 'moderate' : 'weak'
-
-  const lines = [`${genre} genre alignment is ${strength} (${matchCount} genre-specific vocabulary matches found).`]
-
-  for (const item of data.specificFeedback) {
-    const found = item.check.some(w => lower.includes(w))
-    lines.push(found ? item.good : item.bad)
-  }
-
-  if (genre === 'Fantasy' && matchCount < 5) {
-    lines.push('Use more Sanskrit-influenced and cosmic vocabulary — this is what separates PocketFM fantasy from generic storytelling')
-  }
-  if (genre === 'Horror') {
-    const hasSlowBuild = sentences => {
-      const s = sentences
-      return s.length > 8
-    }
-    lines.push('Horror promos must build SLOWLY then spike suddenly at the end — unlike Fantasy which accelerates from midpoint (Rule 6 applies differently for Horror)')
-  }
-
-  return lines.join('. ')
-}
-
-// ─── WHAT IS WORKING / WEAK POINTS ───────────────────────────────────────────
-const PARAM_LABELS = {
-  hookLine: 'Hook Line',
-  context: 'Context Clarity',
-  sequence: 'Sequence Logic',
-  sceneDesign: 'Scene Design',
-  pacing: 'Pacing & Transitions',
-  ending: 'Ending & CTA',
-  ratio: 'Narration/Dialogue Ratio',
-}
-
-const PARAM_WHY = {
-  hookLine: 'The hook is the first thing the listener hears — a weak hook loses them immediately, before the story begins',
-  context: 'Context lines establish the world and stakes; vague context leaves the audience confused about who they are rooting for',
-  sequence: 'Wrong sequence type or poor scene order makes the promo feel like a summary, not a story',
-  sceneDesign: 'Passive scenes feel flat — audiences connect to what characters DO and SAY, not what they passively are',
-  pacing: 'Flat pacing kills momentum; the second half must accelerate to drive the audience to hit play',
-  ending: 'The CTA questions are the last thing heard — weak questions mean no action from the listener',
-  ratio: 'Too much dialogue makes a promo feel like a play; too little makes it cold — 70:30 is the proven formula',
-}
-
-function generateWhatIsWorking(parameterScores) {
-  return Object.entries(parameterScores)
-    .sort(([, a], [, b]) => b.score - a.score)
-    .slice(0, 3)
-    .map(([param, data]) => `${PARAM_LABELS[param]} (${data.score}/10): ${data.feedback.split('.')[0]}`)
-}
-
-function generateWeakPoints(parameterScores) {
-  return Object.entries(parameterScores)
-    .sort(([, a], [, b]) => a.score - b.score)
-    .slice(0, 3)
-    .filter(([, d]) => d.score < 8)
-    .map(([param, data]) => ({
-      issue: `${PARAM_LABELS[param]}: ${data.feedback.split('.')[0]}`,
-      whyItFails: PARAM_WHY[param],
-      location: `Overall ${PARAM_LABELS[param].toLowerCase()} — see Feedback tab for line-level detail`,
-    }))
-}
-
-// ─── REWRITE SUGGESTIONS ──────────────────────────────────────────────────────
-function generateRewriteSuggestions(sentences, parameterScores, genre) {
-  const suggestions = []
-
-  if (parameterScores.hookLine.score < 7) {
-    const templates = {
-      Fantasy: '"Aaj ke baad, is brahmand mein koi bhi surakshit nahi..." — A character\'s defiant warning, under 13 words, drops the audience into peak crisis',
-      Drama: '"Main jaanta hoon tu kaun hai... aur teri asli pehchaan kya hai." — A confrontation line that teases hidden identity without revealing it',
-      Horror: '"Woh sach jaanta tha... jo koi dekhna nahi chahta." — Atmospheric dread that withholds more than it reveals',
-    }
-    suggestions.push({
-      original: sentences[0] || '[Your current opening line]',
-      rewritten: templates[genre] || templates.Drama,
-      reason: 'Rule 1: Hook must be a character\'s spoken dialogue under 13 words. It should tease the most dramatic moment — not describe or introduce.',
-    })
-  }
-
-  if (parameterScores.ending.score < 7) {
-    const ctaTemplates = {
-      Fantasy: '1. Kya [protagonist] is yudh mein jiit paayega?\n2. Woh rahasya kya hai jo ise rok sakta hai?\n3. Kya [show name] ka ant... duniya ka bhi ant hai?',
-      Drama: '1. Kya [character] ka raaz kabhi saamne aayega?\n2. Toh woh sachchi kaun hai — woh jo dikhti hai, ya woh jo hai?\n3. Rishta bachega... ya sab kuch bikhar jaayega?',
-      Horror: '1. Woh aawaz kahan se aati hai?\n2. Kya woh insaan hai... ya kuch aur?\n3. Kya woh kabhi andhere se niklega?',
-    }
-    suggestions.push({
-      original: 'Current ending / CTA section',
-      rewritten: ctaTemplates[genre] || ctaTemplates.Drama,
-      reason: 'Rule 9: Exactly 3-4 CTA questions, escalating from specific cliffhanger → earlier mystery → character mystery. Each must be answerable ONLY by listening.',
-    })
-  }
-
-  return suggestions.slice(0, 2)
-}
-
-// ─── P0 COMPARISON ────────────────────────────────────────────────────────────
-function buildP0Comparison(genre, parameterScores) {
-  const data = GENRE_DATA[genre] || GENRE_DATA.Fantasy
-  const p0 = data.p0Scripts[0]
-  const weakest = Object.entries(parameterScores).sort(([, a], [, b]) => a.score - b.score)[0]
-
-  return {
-    closestP0Script: `${p0.id} (${p0.show})`,
-    whatP0DoesDifferently: `${p0.show}'s P0 promo uses this technique: "${p0.hookPattern}". The key difference is the hook immediately creates a specific, show-exclusive conflict — no general setup, no descriptive intro. It drops you into the story at maximum tension.`,
-    keyLessons: [
-      `Hook must be a character's own spoken words — never narrator description. P0 scripts open with a line that could ONLY belong to this specific show.`,
-      `The highest-performing ${genre} promos establish the core conflict within the first 2 lines — before any context or backstory.`,
-      weakest ? `Your lowest-scoring parameter is ${PARAM_LABELS[weakest[0]]} (${weakest[1].score}/10) — fixing this single parameter would have the biggest impact on your overall score.` : 'All parameters need consistent strength to hit P0 tier.',
-    ],
-  }
-}
-
-// ─── MAIN EVALUATOR ───────────────────────────────────────────────────────────
-function runEvaluation(script, showName, genre, episodeRange) {
-  const sentences = splitSentences(script)
+function countQ(text) { return (text.match(/\?/g) || []).length }
+
+function ruleBasedEval(script, showName, genre) {
+  const sents = splitSentences(script)
+  const lower = script.toLowerCase()
+  const first = sents[0] || ''
+  const dialogs = extractDialogues(script)
+  const dialogWords = dialogs.reduce((s, d) => s + wc(d), 0)
+  const totalWords = wc(script)
+  const ratio = totalWords > 0 ? dialogWords / totalWords : 0
+  const mid = Math.floor(sents.length / 2)
+  const firstAvg = sents.slice(0, mid).reduce((s, x) => s + wc(x), 0) / Math.max(mid, 1)
+  const secondAvg = sents.slice(mid).reduce((s, x) => s + wc(x), 0) / Math.max(sents.length - mid, 1)
+  const endQ = countQ(sents.slice(-5).join(' '))
+
+  const hookDia = extractDialogues(sents.slice(0, 2).join(' ')).length > 0
+  const hookWc = wc(first)
+  const hookScore = Math.max(1, Math.min(10, Math.round(
+    3 + (hookDia ? 3 : 0) + (hookWc <= 13 && hookWc >= 4 ? 2 : hookWc > 13 ? -1 : 0) +
+    (/\?/.test(first) ? 1 : 0) + (['threat','war','secret','truth','never','stop'].some(w => lower.includes(w)) ? 1 : 0)
+  )))
+  const ctxCount = sents.slice(1, 7).length
+  const ctxScore = Math.max(1, Math.min(10, Math.round(
+    4 + (ctxCount >= 2 && ctxCount <= 4 ? 3 : ctxCount > 5 ? 0 : 1) +
+    (['he ','she ','woh '].some(w => lower.includes(w)) ? 1 : 0) +
+    (['must','trying','chahta','karna'].some(w => lower.includes(w)) ? 1 : 0)
+  )))
+  const seqScore = Math.max(1, Math.min(10, Math.round(
+    4 + (/^[""]|^[A-Z].{0,40}[!?]/.test(first) ? 3 : 0) +
+    (['tab','lekin','phir','par','magar','but','however','suddenly'].filter(w => lower.includes(w)).length >= 3 ? 2 : 1) +
+    (['pehle','pahle','ek din','years ago','past'].some(w => lower.includes(w)) ? 1 : 0)
+  )))
+  const dActive = dialogs.length + ['runs','fights','decides','realizes','refuses','bhaaga','samjha'].filter(w => lower.includes(w)).length
+  const sceneScore = Math.max(1, Math.min(10, Math.round(3 + (dActive >= 6 ? 5 : dActive >= 3 ? 3 : 1) + (dialogs.length >= 2 ? 2 : dialogs.length === 1 ? 1 : 0))))
+  const pacingScore = Math.max(1, Math.min(10, Math.round(
+    4 + (secondAvg < firstAvg * 0.8 ? 4 : secondAvg <= firstAvg ? 2 : 0) +
+    (totalWords >= 150 && totalWords <= 400 ? 1 : totalWords < 100 ? -2 : 0)
+  )))
+  const endScore = Math.max(1, Math.min(10, Math.round(
+    3 + (endQ >= 3 && endQ <= 4 ? 5 : endQ === 2 ? 3 : endQ >= 5 ? 3 : endQ === 1 ? 1 : 0) +
+    (/pocket\s*fm|listen|episode/i.test(lower) ? 1 : 0) +
+    (['everything','final','last','destiny','aakhir'].some(w => lower.includes(w)) ? 1 : 0)
+  )))
+  const longestDia = dialogs.reduce((m, d) => Math.max(m, wc(d)), 0)
+  const ratioScore = Math.max(1, Math.min(10, Math.round(
+    5 + (ratio >= 0.22 && ratio <= 0.38 ? 4 : ratio > 0.38 && ratio <= 0.5 ? 2 : ratio > 0.5 ? -1 : 1) +
+    (longestDia > 25 ? -2 : 0)
+  )))
+
+  const overall = parseFloat((hookScore*0.25 + ctxScore*0.10 + seqScore*0.15 + sceneScore*0.15 + pacingScore*0.15 + endScore*0.10 + ratioScore*0.10).toFixed(1))
+  const tier = overall >= 8.5 ? 'P0' : overall >= 6.5 ? 'P1' : 'P2'
+  const tierLabel = tier === 'P0' ? 'Top performer — ready to publish' : tier === 'P1' ? 'Good script — needs specific fixes before publishing' : 'Weak script — major rework required'
 
   const parameterScores = {
-    hookLine: scoreHookLine(sentences, script),
-    context: scoreContext(sentences),
-    sequence: scoreSequence(sentences, script),
-    sceneDesign: scoreSceneDesign(sentences, script),
-    pacing: scorePacing(sentences, script),
-    ending: scoreEnding(sentences, script),
-    ratio: scoreRatio(script),
+    hookLine: { score: hookScore, feedback: hookDia ? `Hook uses dialogue (${hookWc} words)${hookWc > 13 ? ' — trim to under 13 words' : ' — within word limit'}` : 'Hook is narration, not dialogue — replace with a character\'s spoken line under 13 words' },
+    context: { score: ctxScore, feedback: ctxCount >= 2 && ctxCount <= 4 ? `${ctxCount} context lines — correct range` : ctxCount > 5 ? `${ctxCount} context lines — too long, cut to 2-4` : 'Context too short — add who/where/what setup' },
+    sequence: { score: seqScore, feedback: seqScore >= 7 ? 'Good scene sequencing with transitions' : 'Open at peak crisis first, then reveal backstory (JUMBLED sequence)' },
+    sceneDesign: { score: sceneScore, feedback: dActive >= 6 ? 'Characters are active — they act, speak, and think' : 'Too many passive scenes — characters must act, not just exist' },
+    pacing: { score: pacingScore, feedback: secondAvg < firstAvg * 0.8 ? 'Good acceleration in second half' : `Second half needs shorter sentences — avg ${Math.round(secondAvg)} words vs ${Math.round(firstAvg)} in first half` },
+    ending: { score: endScore, feedback: endQ >= 3 ? `${endQ} CTA questions — good` : `Only ${endQ} CTA question${endQ === 1 ? '' : 's'} — needs 3-4 urgent questions` },
+    ratio: { score: ratioScore, feedback: ratio >= 0.22 && ratio <= 0.38 ? `Narration/dialogue ratio ${Math.round((1-ratio)*100)}:${Math.round(ratio*100)} — close to target 70:30` : ratio > 0.38 ? `Dialogue at ${Math.round(ratio*100)}% — reduce to 30% target` : 'Add more character dialogue — target 30%' },
   }
 
-  // Final = (Hook×0.25) + (Context×0.10) + (Sequence×0.15) + (SceneDesign×0.15) + (Pacing×0.15) + (Ending×0.10) + (Ratio×0.10)
-  const overallScore = parseFloat((
-    parameterScores.hookLine.score * 0.25 +
-    parameterScores.context.score * 0.10 +
-    parameterScores.sequence.score * 0.15 +
-    parameterScores.sceneDesign.score * 0.15 +
-    parameterScores.pacing.score * 0.15 +
-    parameterScores.ending.score * 0.10 +
-    parameterScores.ratio.score * 0.10
-  ).toFixed(1))
-
-  let tier, tierLabel
-  if (overallScore >= 8.5) {
-    tier = 'P0'; tierLabel = 'Top performer — ready to publish'
-  } else if (overallScore >= 6.5) {
-    tier = 'P1'; tierLabel = 'Good script — needs specific fixes before publishing'
-  } else {
-    tier = 'P2'; tierLabel = 'Weak script — major rework required'
-  }
+  const sorted = Object.entries(parameterScores).sort(([,a],[,b]) => b.score - a.score)
+  const pLabels = { hookLine: 'Hook Line', context: 'Context Clarity', sequence: 'Sequence Logic', sceneDesign: 'Scene Design', pacing: 'Pacing', ending: 'Ending & CTA', ratio: 'Narration/Dialogue Ratio' }
 
   return {
-    overallScore,
-    tier,
-    tierLabel,
-    parameterScores,
-    whatIsWorking: generateWhatIsWorking(parameterScores),
-    weakPoints: generateWeakPoints(parameterScores),
-    rewriteSuggestions: generateRewriteSuggestions(sentences, parameterScores, genre),
-    p0Comparison: buildP0Comparison(genre, parameterScores),
-    genreSpecificFeedback: buildGenreFeedback(script, genre),
+    overallScore: overall, tier, tierLabel, parameterScores,
+    whatIsWorking: sorted.slice(0,3).map(([k,v]) => `${pLabels[k]} (${v.score}/10): ${v.feedback}`),
+    weakPoints: sorted.slice(-3).filter(([,v]) => v.score < 8).map(([k,v]) => ({ issue: `${pLabels[k]}: ${v.feedback}`, whyItFails: `${pLabels[k]} directly impacts whether the listener stays engaged`, location: `Overall ${pLabels[k].toLowerCase()} structure` })),
+    rewriteSuggestions: hookScore < 7 ? [{ original: sents[0] || '[Opening line]', rewritten: genre === 'Fantasy' ? '"Aaj ke baad, is brahmand mein koi surakshit nahi..." [Character dialogue, under 13 words]' : genre === 'Drama' ? '"Main jaanta hoon tu kaun hai... aur teri asli pehchaan." [Confrontation dialogue, under 13 words]' : '"Woh sach... jo koi dekhna nahi chahta tha." [Dread-before-reveal hook]', reason: 'Hook must be a character\'s spoken dialogue under 13 words — not narration' }] : [],
+    p0Comparison: { closestP0Script: genre === 'Fantasy' ? 'TWAR-Hasim-LP1 (The Warrior)' : genre === 'Drama' ? 'MMP-Shailendra-LP1 (My Mysterious Princess)' : 'STDL-Hasim-LP2-V1 (Shiva Ek Pretyodha)', whatP0DoesDifferently: `P0 ${genre} promos open with a character's own words that are unique to this specific show — no general setup, no narrator intro`, keyLessons: ['Hook must be dialogue, under 13 words, show-exclusive', `${genre} promos establish core conflict in first 2 lines`, `Add ${endQ < 3 ? '3-4 urgent CTA questions' : 'stronger pacing acceleration'} in second half`] },
+    genreSpecificFeedback: `Note: This is a basic structural analysis. Add GEMINI_API_KEY in Vercel Settings for full AI evaluation with specific line-by-line feedback comparing to all 23 P0 benchmark scripts.`,
   }
 }
 
@@ -557,12 +394,33 @@ export default async function handler(req, res) {
     return res.status(400).json({ success: false, message: 'Script, show name, and genre are required' })
   }
   if (script.trim().length < 50) {
-    return res.status(400).json({ success: false, message: 'Script is too short. Please paste the full promo script (minimum 50 characters).' })
+    return res.status(400).json({ success: false, message: 'Script is too short. Please paste the full promo script.' })
   }
 
+  // ── Try Gemini AI first ────────────────────────────────────────────────────
+  if (process.env.GEMINI_API_KEY) {
+    try {
+      const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY)
+      const model = genAI.getGenerativeModel({
+        model: 'gemini-1.5-flash',
+        systemInstruction: SYSTEM_PROMPT,
+        generationConfig: { maxOutputTokens: 4000, temperature: 0.3 }
+      })
+      const result = await model.generateContent(buildUserPrompt(script.trim(), showName, genre, episodeRange || '1-50'))
+      let text = result.response.text().trim()
+      if (text.startsWith('```')) text = text.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '')
+      const jsonMatch = text.match(/\{[\s\S]*\}/)
+      const evaluation = JSON.parse(jsonMatch ? jsonMatch[0] : text)
+      return res.status(200).json({ success: true, evaluation, source: 'ai' })
+    } catch (err) {
+      console.error('Gemini error, falling back to rule-based:', err.message)
+    }
+  }
+
+  // ── Rule-based fallback ────────────────────────────────────────────────────
   try {
-    const evaluation = runEvaluation(script.trim(), showName, genre, episodeRange || '1-50')
-    return res.status(200).json({ success: true, evaluation })
+    const evaluation = ruleBasedEval(script.trim(), showName, genre)
+    return res.status(200).json({ success: true, evaluation, source: 'rules' })
   } catch (error) {
     console.error('Evaluation error:', error)
     return res.status(500).json({ success: false, message: error.message || 'Evaluation failed. Please try again.' })

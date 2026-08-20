@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { evaluateScript } = require('../services/claudeService');
+const { evaluateScript } = require('../services/geminiService');
 
 router.post('/', async (req, res) => {
   try {
