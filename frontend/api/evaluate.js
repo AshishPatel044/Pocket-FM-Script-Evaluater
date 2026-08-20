@@ -5,12 +5,56 @@ export const config = { maxDuration: 60 }
 // ─── MASTER PROMPT (full, verbatim) ──────────────────────────────────────────
 const SYSTEM_PROMPT = `You are a world-class OTT Promo Script Evaluator for PocketFM — India's largest audio storytelling platform.
 
-You have deeply studied all 26 confirmed P0 extraordinary-performing promo scripts across Fantasy, Drama, and Horror genres on PocketFM. You understand exactly what makes a promo script a P0 (top performer), P1 (good), or P2 (weak).
+You have deeply studied all 26 confirmed P0 extraordinary-performing promo scripts AND the full episode content (episodes 1-50) of all 21 shows. You understand the characters, their speaking styles, show-specific vocabulary, and exactly what makes a promo script a P0 (top performer), P1 (good), or P2 (weak).
 
-The 26 confirmed P0 scripts are:
-FANTASY: TWAR-Akshay-LP1-30 Mins-V2, TWAR-Hasim-LP1, TWAR-Hasim-LP2, TWAR-Pranjali-LP7, TWAR-Pranjali-LP7-Hasim-V1, TWAR-Pranjali-LP8-Hasim-V1, TWAR-Hasim-LP2-Akshay-V1, TBG-Akshay-LP3, TBG-Shailendra-LP3-Hasim-V1, PTS-Akshay-LP1-V1, PG-Hasim-LP1-V1, DFB-Hasim-LP1, BKR-Hasim-LP3, KOD-Hasim-LP4-V2, KODGN-Hasim-LP1-30 Mins-V1, KODGN-Rituraj-LP1-Hasim-V1, KODGN-Hasim-LP3-V2, KOD-Shailendra-LP10-Hasim-V1
-DRAMA: MMP-Shailendra-LP1, MMP-Shailendra-LP2, EHK-Prakash-LP2-Hasim-V3, BRHW-Akshay-LP1, HSF-Akshay-LP5, BH-Prakash-LP1, BH-Prakash-LP1-V1
-HORROR: STDL-Hasim-LP2-V1
+THE 26 CONFIRMED P0 SCRIPTS:
+FANTASY (18): TWAR-Akshay-LP1-30 Mins-V2, TWAR-Hasim-LP1, TWAR-Hasim-LP2, TWAR-Pranjali-LP7, TWAR-Pranjali-LP7-Hasim-V1, TWAR-Pranjali-LP8-Hasim-V1, TWAR-Hasim-LP2-Akshay-V1, TBG-Akshay-LP3, TBG-Shailendra-LP3-Hasim-V1, PTS-Akshay-LP1-V1, PG-Hasim-LP1-V1, DFB-Hasim-LP1, BKR-Hasim-LP3, KOD-Hasim-LP4-V2, KODGN-Hasim-LP1-30 Mins-V1, KODGN-Rituraj-LP1-Hasim-V1, KODGN-Hasim-LP3-V2, KOD-Shailendra-LP10-Hasim-V1
+DRAMA (7): MMP-Shailendra-LP1, MMP-Shailendra-LP2, EHK-Prakash-LP2-Hasim-V3, BRHW-Akshay-LP1, HSF-Akshay-LP5, BH-Prakash-LP1, BH-Prakash-LP1-V1
+HORROR (1): STDL-Hasim-LP2-V1
+
+SHOW KNOWLEDGE — what you know about each show's characters and world:
+
+THE WARRIOR (TWAR): Atharv Dev (legendary warrior, dies swallowing आकाश विष मोती, reincarnates into Atharv Churu's broken body) + Arya (Frozen Cloud Sect, cold/formal Hindi, cannot love by sect law). Central engine: supreme warrior in zero-power body secretly rebuilding strength. Key vocab: आकाश विष मोती, मिस्टिक वेन्स, फ्रोजन क्लाउड सम्प्रदाय, सात स्वर्गीय खजाने, गहन क्षेत्र. 5 confirmed hook types: wedding humiliation, death-price declaration, blood-drinking mystery girl, one-night-only wife, afterlife disorientation.
+
+KING OF DRAGON (KOD/KODGN): Arjun (6-year coma survivor, Dragon King reincarnation) + Shivanya (CEO heiress, clipped authority register). Central engine: coma survivor discovers Dragon King powers while protecting Shivanya in contract marriage. Key vocab: ड्रैगन किंग, तिलस्मी टुकड़ा, कॉन्ट्रैक्ट मैरिज, स्वर्ण ड्रैगन, दिव्य शक्तियाँ. Best hook: "बिना सुहागरात वाली शादी करोगे मुझसे?" (LP1) and mall insult reversal (LP10).
+
+THE BEAST GURU (TBG): Rudra (protagonist, falsely accused) + Kavya (betrayal) + Samar (mahakaal villain) + Chuza (fire phoenix chick — comic relief). Central engine: false accusation destroys Rudra's reputation; he must clear his name, cure his mother with संजीवनी, defeat Samar. Key vocab: जीवन-बंधन प्राणी, काली भुजा, स्वर्ण गरुड़, स्वर्ग भवन, दस रहस्यमयी अंडे.
+
+PURPLE THUNDER SOVEREIGN (PTS): Aryan (reincarnated modern-world person, awakens E-rank electric power). Rank system: E→D→C→B→A. Key vocab: इंद्रवज्र, तड़ित प्रहार, कच्ची बिजली, असुर सम्राट, अवेकनर. Hook: extreme humiliation ("गंदी नाली का कीड़ा").
+
+PRIMORDIAL GOD (PG): Suryansh (mute/गूंगा, secretly holds Infinite-Grade Spirit Power) + Naira (arrogant, 6th-grade) + Himanshi (kind). Key vocab: स्पिरिट ग्रेड, क्रिस्टल रूलर, राज नगर, डिवाइन वॉइस, संदूक. Hook: forced marriage of mute protagonist ("इस गूंगे से शादी कर लो बेटा!").
+
+DIVINE FLAME BURST (DFB): Aditya (wants to find missing mother, accidentally awakens galaxy-level Sarvoch Pauranik Chetna) + Jeevansh (antagonist). Key vocab: चेतना, पौराणिक चेतना, जीवा परिवार, नौरंगी अंडा, अर्य साम्राज्य. Hook: public mockery at ceremony.
+
+DIVINE POWER (DP): Arya (sweeps academy, Acharya grants immense power that breaks the testing pillar). Key vocab: मंगोला, शक्ति स्तंभ, भविष्यवाणी, आचार्य, रुद्रपुर. Hook: guard's reaction to broken power pillar.
+
+BRAHMYODHA (BHY): Vidhyut (carries a mysterious locket tied to hidden lineage) + Thama (cryptic guide). Key vocab: अग्नि शक्ति ग्रंथ, चक्र जागृत, लॉकेट, इंद्रपुरी, शक्तिगोला. Hook: locket = true identity question.
+
+BRAHMAND KA RAKSHAK (BKR): Kshitij (prince, accidentally bonds with the rarest Som Dragon by bleeding on it). Key vocab: सोम ड्रैगन, अग्नि ड्रैगन, ड्रैगन अकादमी, सपनोल्लास साम्राज्य. Hook: mockery of dragon-taming ability.
+
+RUDRA: RISE OF THE SUPREME YODHA (RRSY): Rudransh (zero-level power, betrayed by 5 companions with 5 knives, discovers divine body in magical ring world). Key vocab: शून्य स्तर, मायावी जंगल, अंगूठी की दुनिया, दिव्य शरीर, जीतू चंद्रा.
+
+THE LEGEND GODS (TLG): Nikhil/Manish (reincarnated warrior emperor, seeks नरक की तलवार). Key vocab: नरक की तलवार, वनांचल, योद्धा सम्राट. Note: TLG-Shailendra-LP3 is P2 (only 2 CTAs).
+
+MY MYSTERIOUS PRINCESS (MMP): Anamika (hidden biological identity, medical genius, fighter, billionaire — triple hidden identity) + Devanshu (love interest) + Natasha (rival sister). Key vocab: बायोलॉजिकल पहचान, ओबरॉय, सिंघानिया, मेडिकल जीनियस.
+
+MALANG (ML): Mritunjay Sarang (CEO, arrogant/commanding) + Mahak (forced substitute bride). Central engine: bride-swap forced marriage → hate to love. Key vocab: सारंग कॉर्पोरेशन, जबरदस्ती की शादी.
+
+HIS SECRET FORTUNE (HSF): Shanaya (forced to marry Vaibhav who hides secret fortune) + Vaibhav (cold/withholding). 4-question CTA = most complete Drama CTA structure. Key vocab: सीक्रेट फॉर्च्यून.
+
+FATED TO BE YOURS (FTBY): Aarohi (jumps off flyover, asks drunk Rudra to marry her on the spot) + Rudransh Rana (SP's son). Accidental marriage → husband denies it. Key vocab: फ्लाईओवर, रुद्रांश राणा, मुझसे शादी कर लीजिए.
+
+EMPIRE OF HIDDEN KING (EHK): Atharv (hides royal identity, minister bows in secret). Forced marriage to love arc. Key vocab: छुपा राजा, मंत्री.
+
+EK STRANGER SE PYAR (ESSP): Suhani (flees tribal village in red lehenga) + Ayan. "नौकरानी पत्नी" dynamic. 3 CTA questions.
+
+BILLIONAIRE HIDDEN WIFE (BHW/BRHW): Kartik (billionaire) + Anika (wife he doesn't recognize). Naqaabposh subplot. 2 confirmed P0 promo versions.
+
+BEGGAR HUSBAND (BH): Shourya Rathore (secretly rich, living as beggar) + Shipra (forced bride). Raijaada family, Mukhtar revenge subplot.
+
+RUTHLESS (RL): Arjun (may be Malini's lost son Samar) + Nayra + "Third Eye" mystery. P1 promos only — hook is narration-heavy, not dialogue-first.
+
+SHIVA EK PRETYODHA (STDL/Horror): Shiva (ghost-fighter/तांत्रिक) + Kavya + Churail. Curiosity hook ("ये हॉट लड़का तांत्रिक है?") not horror hook. Sensory narration. Village setting: मंगलापुर. Key vocab: चुड़ैल, साया, प्रेत्योधा, ॐ birthmark.
 
 You have observed the following patterns from these confirmed P0 scripts:
 
@@ -154,22 +198,22 @@ Return ONLY valid JSON — no markdown fences, no preamble:
 const P0_SCRIPTS = {
   fantasy: [
     // ── The Warrior (7 confirmed P0 scripts) ──
-    { id: 'TWAR-Akshay-LP1-30 Mins-V2', show: 'The Warrior', hookPattern: 'Defiant dialogue establishing warrior identity at crisis', hookExample: 'तुझ जैसे नामर्द के साथ मैंने सुहागरात मनाई तो सब लोग मुझ पर थूकेंगे।', sequenceType: 'JUMBLED', keyStrengths: ['Crisis-first JUMBLED sequence', 'Wife confrontation as hook', 'Specific humiliation creates polarity'] },
-    { id: 'TWAR-Hasim-LP1', show: 'The Warrior', hookPattern: 'Enemy threat dialogue — show-specific object', hookExample: 'आकाश विष मोती तक पहुँचने की कीमत... सिर्फ़ मौत है।', sequenceType: 'JUMBLED', keyStrengths: ['Show-specific object in hook (आकाश विष मोती)', 'Cosmic stakes', 'Under 10 words'] },
-    { id: 'TWAR-Hasim-LP2', show: 'The Warrior', hookPattern: 'Protagonist resolve dialogue at high-stakes moment', hookExample: 'आकाश विष मोती...', sequenceType: 'ORIGINAL', keyStrengths: ['Same-show variant', 'Different emotional angle on same story'] },
-    { id: 'TWAR-Pranjali-LP7', show: 'The Warrior', hookPattern: 'Female writer perspective — emotional conflict hook', hookExample: '', sequenceType: 'ORIGINAL', keyStrengths: ['Different writer voice', 'LP7 = later episode promo'] },
-    { id: 'TWAR-Pranjali-LP7-Hasim-V1', show: 'The Warrior', hookPattern: 'Revised version of LP7 by Hasim', hookExample: '', sequenceType: 'ORIGINAL', keyStrengths: ['LP7 revision — tighter hook', 'Hasim polish on Pranjali draft'] },
-    { id: 'TWAR-Pranjali-LP8-Hasim-V1', show: 'The Warrior', hookPattern: 'LP8 episode promo — advanced story hook', hookExample: '', sequenceType: 'FLASHBACK', keyStrengths: ['LP8 = deep story hook', 'Hasim revision for punchiness'] },
-    { id: 'TWAR-Hasim-LP2-Akshay-V1', show: 'The Warrior', hookPattern: 'Akshay revision of LP2 — shorter, sharper', hookExample: '', sequenceType: 'JUMBLED', keyStrengths: ['Collaborative polish', 'Final V1 = most refined TWAR hook'] },
+    { id: 'TWAR-Akshay-LP1-30 Mins-V2', show: 'The Warrior', hookPattern: 'Wife humiliation dialogue on wedding night — maximum shock', hookExample: 'तुझ जैसे नामर्द के साथ मैंने सुहागरात मनाई तो सब लोग मुझ पर थूकेंगे।', sequenceType: 'ORIGINAL', keyStrengths: ['Wedding-night humiliation = immediate conflict', 'Sets up arranged-marriage-to-love arc', 'Also exists as 30-min extended version'] },
+    { id: 'TWAR-Hasim-LP1', show: 'The Warrior', hookPattern: 'Villain declares death price of show-specific relic', hookExample: 'आकाश विष मोती तक पहुँचने की कीमत... सिर्फ़ मौत है।', sequenceType: 'ORIGINAL', keyStrengths: ['Show-specific relic आकाश विष मोती in hook', 'Death stakes in 9 words', 'Reincarnation arc begins in battle scene'] },
+    { id: 'TWAR-Hasim-LP2', show: 'The Warrior', hookPattern: 'Mystery girl drinks protagonist blood — immediate shock', hookExample: 'आखिर... तुम मेरा खून क्यों पी रही हो? छोड़ो मुझे!', sequenceType: 'ORIGINAL', keyStrengths: ['Blood-drinking hook = maximum curiosity', 'Mid-story promo targeting episode-range audience', 'Flame Dragon + Heavenly Treasures as CTA'] },
+    { id: 'TWAR-Pranjali-LP7-Hasim-V1', show: 'The Warrior', hookPattern: 'Romantic tension — wife declares one-night-only status', hookExample: 'मैं सिर्फ़ आज रात के लिए तुम्हारी पत्नी हूँ अथर्व....', sequenceType: 'ORIGINAL', keyStrengths: ['Emotional restraint hook = romantic tension', 'TWAR LP7 = advanced episode promo', 'Arya character voice: शांत लेकिन कठोर'] },
+    { id: 'TWAR-Pranjali-LP7', show: 'The Warrior', hookPattern: 'Same hook as LP7-Hasim-V1 with FLASHBACK structure', hookExample: 'मैं सिर्फ़ आज रात के लिए तुम्हारी पत्नी हूँ अथर्व....', sequenceType: 'FLASHBACK', keyStrengths: ['FLASHBACK confirmed by explicit marker in script', 'Origin of relationship revisited', 'Pranjali original + Hasim polish comparison'] },
+    { id: 'TWAR-Pranjali-LP8-Hasim-V1', show: 'The Warrior', hookPattern: 'Afterlife disorientation — existential mystery hook', hookExample: 'ये मौत के बाद की दुनिया है...? या... या कोई सपना...?', sequenceType: 'FLASHBACK', keyStrengths: ['Afterlife/death hook = existential mystery', 'LP8 = deep story, reincarnation revisited', 'FLASHBACK structure confirmed'] },
+    { id: 'TWAR-Hasim-LP2-Akshay-V1', show: 'The Warrior', hookPattern: 'Romantic emotional hook — memory of love warning', hookExample: 'याद रखना, आर्या... प्यार की एक चिंगारी भी तुम्हारे दिल की बर्फ पिघला सकती है।', sequenceType: 'FLASHBACK', keyStrengths: ['Romance-appeal hook (different audience targeting)', 'Collaborative Hasim+Akshay polish', 'Frozen Cloud Sect backstory as FLASHBACK'] },
     // ── King of Dragon (5 confirmed P0 scripts) ──
-    { id: 'KOD-Hasim-LP4-V2', show: 'King of Dragon', hookPattern: 'Dragon power challenge at dramatic moment', hookExample: 'बिना सुहागरात वाली शादी करोगे मुझसे?', sequenceType: 'JUMBLED', keyStrengths: ['LP4 = mid-story hook', 'Dragon mythology established'] },
-    { id: 'KODGN-Hasim-LP1-30 Mins-V1', show: 'King of Dragon', hookPattern: 'Contract marriage surprise proposal', hookExample: 'बिना सुहागरात वाली शादी करोगे मुझसे?', sequenceType: 'JUMBLED', keyStrengths: ['Immediate surprise', 'Dragon mythology in first 2 narration lines', 'Both fantasy + drama elements'] },
-    { id: 'KODGN-Rituraj-LP1-Hasim-V1', show: 'King of Dragon', hookPattern: 'Rituraj draft revised by Hasim — polished hook', hookExample: '', sequenceType: 'ORIGINAL', keyStrengths: ['Different writer voice', 'Hasim revision for Hindi punchiness'] },
-    { id: 'KODGN-Hasim-LP3-V2', show: 'King of Dragon', hookPattern: 'LP3 — mid-story dragon conflict hook', hookExample: '', sequenceType: 'JUMBLED', keyStrengths: ['V2 refinement', 'Dragon conflict as hook'] },
-    { id: 'KOD-Shailendra-LP10-Hasim-V1', show: 'King of Dragon', hookPattern: 'LP10 — deep story hook with Hasim polish', hookExample: '', sequenceType: 'FLASHBACK', keyStrengths: ['Late episode promo', 'Shailendra + Hasim collaboration'] },
+    { id: 'KOD-Hasim-LP4-V2', show: 'King of Dragon', hookPattern: 'Betrayal at wedding — brother stole girlfriend', hookExample: 'तुम मेरे भाई से शादी कैसे कर सकती हो मिषा? तुम तो मुझसे प्यार करती थी।', sequenceType: 'ORIGINAL', keyStrengths: ['Love betrayal hook (bhai ne girlfriend chhaini)', 'Coma backstory revealed after hook', 'Dragon King powers emerge later'] },
+    { id: 'KODGN-Hasim-LP1-30 Mins-V1', show: 'King of Dragon', hookPattern: 'Bold contract marriage proposal — no suhagraat clause', hookExample: 'बिना सुहागरात वाली शादी करोगे मुझसे?', sequenceType: 'ORIGINAL', keyStrengths: ['Shivanya\'s bold proposal = immediate shock', '30-min extended version covers full arc', '3 strong CTA questions'] },
+    { id: 'KODGN-Hasim-LP3-V2', show: 'King of Dragon', hookPattern: '10,000-year-old betrayal — Dragon King killed by lover', hookExample: 'एक योद्धा को दिल से नहीं, दिमाग से काम लेना चाहिए ड्रैगन किंग! / तुम... तुमने धोखा क्यों दिया...?', sequenceType: 'FLASHBACK', keyStrengths: ['10,000-year ancient betrayal FLASHBACK as cold open', 'Dual timeline (ancient/modern) = maximum intrigue', 'Narrator line: "जीससे करता था वो प्यार, उसी ने सीने में घोंप दी तलवार"'] },
+    { id: 'KODGN-Shailendra-LP10-Hasim-V1', show: 'King of Dragon', hookPattern: 'Mall insult + instant reversal — beggar or Dragon King?', hookExample: 'इस भिखारी को अंदर किसने आने दिया?', sequenceType: 'ORIGINAL', keyStrengths: ['Salesgirl insult followed by Shivanya calling him darling = best reversal hook', 'Most polished character arcs', 'Promo named "Fighter Shivanya"'] },
+    { id: 'KODGN-Rituraj-LP1-Hasim-V1', show: 'King of Dragon', hookPattern: 'Rituraj original draft polished by Hasim — LP1 variant', hookExample: 'बिना सुहागरात वाली शादी करोगे मुझसे?', sequenceType: 'ORIGINAL', keyStrengths: ['Rituraj + Hasim collaboration', 'LP1 variant targeting same entry point'] },
     // ── The Beast Guru (2 confirmed P0 scripts) ──
-    { id: 'TBG-Akshay-LP3', show: 'The Beast Guru', hookPattern: 'Mystery/supernatural discovery — protagonist sees impossible thing', hookExample: 'मेरे हाथ की लकीरों में… ये आँख कहाँ से आ गई?', sequenceType: 'ORIGINAL', keyStrengths: ['Mystery hook (not conflict — curiosity)', 'Show-specific supernatural element', 'Wonder/hairaani emotion instead of anger'] },
-    { id: 'TBG-Shailendra-LP3-Hasim-V1', show: 'The Beast Guru', hookPattern: 'Female character distress cry — extreme urgency', hookExample: 'बचाओ! कोई मुझे बचाओ! ये दरिंदा मेरी इज़्ज़त लूट रहा है!', sequenceType: 'FLASHBACK', keyStrengths: ['Extreme urgency hook', 'Emotional distress as hook (rare — works for this show)', '4 CTA questions'] },
+    { id: 'TBG-Akshay-LP3', show: 'The Beast Guru', hookPattern: 'Mystery discovery — demonic eye appears in palm (wonder/hairaani)', hookExample: 'मेरे हाथ की लकीरों में… ये आँख कहाँ से आ गई?', sequenceType: 'JUMBLED', keyStrengths: ['Mystery/wonder hook not anger — unique Fantasy type', 'Show-specific supernatural: काली भुजा (demonic arm)', 'JUMBLED: present (red eye) → 3-years-ago betrayal → now', '4 CTA questions including 10 mysterious eggs mystery'] },
+    { id: 'TBG-Shailendra-LP3-Hasim-V1', show: 'The Beast Guru', hookPattern: 'False accusation distress scream — Kavya falsely accuses Rudra', hookExample: 'बचाओ! कोई मुझे बचाओ! ये दरिंदा मेरी इज़्ज़त लूट रहा है!', sequenceType: 'ORIGINAL', keyStrengths: ['Most extreme distress hook = maximum empathy', 'False accusation + mahakaal villain + mother\'s cure quest', '6 well-formed CTA questions covering full arc', 'Final CTA ties to show title: "क्या रुद्र ही बीस्ट गुरु बनेगा?"'] },
     // ── Other Fantasy shows ──
     { id: 'PTS-Akshay-LP1-V1', show: 'Purple Thunder Sovereign', hookPattern: 'Extreme humiliation challenge — lowest-of-the-low insult', hookExample: 'तुझ जैसा गंदी नाली का कीड़ा अगर योद्धा बनेगा, तो हम लोग क्या चने के खेत में नाचेंगे?', sequenceType: 'ORIGINAL', keyStrengths: ['Most extreme humiliation hook of all P0s', 'Specific insult tied to protagonist identity', 'Power reversal is the entire engine'] },
     { id: 'PG-Hasim-LP1-V1', show: 'Primordial God', hookPattern: 'Injustice hook — protagonist forced into humiliating situation', hookExample: 'इस गूंगे से शादी कर लो बेटा!', sequenceType: 'ORIGINAL', keyStrengths: ['Simple 6-word hook', 'Injustice creates instant empathy', 'Cosmic god reveals later'] },
@@ -177,13 +221,13 @@ const P0_SCRIPTS = {
     { id: 'BKR-Hasim-LP3', show: 'Brahmand Ka Rakshak', hookPattern: 'Mockery of protagonist\'s dragon-taming ability', hookExample: 'तुम्हारी तो औकात ही नहीं हैं की तुम किसी भी ड्रैगन को वश में कर सको!', sequenceType: 'JUMBLED', keyStrengths: ['Immediate power hierarchy challenge', 'Show-specific ability mocked', 'Sets up cosmic "Rakshak" reveal'] },
   ],
   drama: [
-    { id: 'MMP-Shailendra-LP1', show: 'My Mysterious Princess', hookPattern: 'Betrayal/threat — villain reveals plan, protagonist loses everything', hookExample: 'अब तेरे मंगेतर से शादी मैं करूँगी... और तू? तू गरीबी में सड़ेगी!', sequenceType: 'ORIGINAL', keyStrengths: ['Identity theft as hook', 'Stakes are immediate and personal', 'Hidden princess identity is payoff engine'] },
-    { id: 'MMP-Shailendra-LP2', show: 'My Mysterious Princess', hookPattern: 'Competence mockery — protagonist\'s skill doubted publicly', hookExample: 'क्या? ये दो कौड़ी की कॉलेज की लड़की... हार्ट सर्जरी करेगी?', sequenceType: 'FLASHBACK', keyStrengths: ['Different angle on same show', 'Professional humiliation hook', 'Mystery identity tease in second half'] },
-    { id: 'EHK-Prakash-LP2-Hasim-V3', show: 'Empire of Hidden King', hookPattern: 'Villain insults female lead — sexual harassment as power display', hookExample: 'हाय जानेमन! एक रात का क्या रेट है तेरा?', sequenceType: 'FLASHBACK', keyStrengths: ['Most visceral Drama hook', 'Extreme humiliation = maximum empathy', 'Hidden king identity as payoff'] },
-    { id: 'BRHW-Akshay-LP1', show: 'Billionaire Hidden Wife', hookPattern: 'Senior figure publicly humiliates protagonist over status', hookExample: 'दो कौड़ी की लड़की! सर से जुबान लड़ाती है? पैरों में गिर... और माफी माँग!', sequenceType: 'ORIGINAL', keyStrengths: ['Authority figure humiliation', 'Protagonist at lowest point', 'Hidden billionaire husband as payoff'] },
-    { id: 'HSF-Akshay-LP5', show: 'His Secret Fortune', hookPattern: 'Class discrimination — poor people insulted in public', hookExample: 'फ़्री का खाना देखा नहीं कि कुत्तों की तरह मुँह मारने आ जाते हैं, भिखारी कहीं के।', sequenceType: 'JUMBLED', keyStrengths: ['Most specific class-discrimination hook', 'Creates instant rage/empathy', 'Secret fortune as payoff'] },
-    { id: 'BH-Prakash-LP1', show: 'Beggar Husband', hookPattern: 'Forced marriage resistance — female lead refuses the beggar', hookExample: 'मैं… मैं इस भिखारी से कभी शादी नहीं करूंगी! छोड़ो मेरा हाथ!', sequenceType: 'ORIGINAL', keyStrengths: ['Immediate resistance = protagonist agency', 'Dramatic irony (beggar = rich)', 'Short + explosive hook'] },
-    { id: 'BH-Prakash-LP1-V1', show: 'Beggar Husband', hookPattern: 'Variant of LP1 — same show, different angle or polish', hookExample: 'मैं… मैं इस भिखारी से कभी शादी नहीं करूंगी!', sequenceType: 'ORIGINAL', keyStrengths: ['V1 refinement', 'Slightly different emotional entry point', 'Same core reversal engine'] },
+    { id: 'MMP-Shailendra-LP1', show: 'My Mysterious Princess', hookPattern: 'Identity theft — villain steals protagonist\'s engagement and future', hookExample: 'अब तेरे मंगेतर से शादी मैं करूँगी... और तू? तू गरीबी में सड़ेगी!', sequenceType: 'ORIGINAL', keyStrengths: ['Identity theft hook = immediate stakes', 'Anamika: hidden princess + medical genius + fighter (triple identity)', 'Devanshu love arc + Natasha rivalry = double engine'] },
+    { id: 'MMP-Shailendra-LP2', show: 'My Mysterious Princess', hookPattern: 'Competence mockery — medical skill doubted publicly', hookExample: 'क्या? ये दो कौड़ी की कॉलेज की लड़की... हार्ट सर्जरी करेगी?', sequenceType: 'ORIGINAL', keyStrengths: ['LP2 = different audience angle on same show', 'Professional humiliation → competence reveal payoff', 'Same show, different entry point for fresh audience'] },
+    { id: 'EHK-Prakash-LP2-Hasim-V3', show: 'Empire of Hidden King', hookPattern: 'Villain sexually harasses female lead in minister-bowing scene', hookExample: 'मंत्री (झुककर): "साहब… क्या आदेश है?" [sets up hidden king persona]', sequenceType: 'ORIGINAL', keyStrengths: ['Hidden king identity: minister bows in secret', 'EHK: Atharv hides royal identity', 'Forced marriage to love arc fully developed'] },
+    { id: 'BRHW-Akshay-LP1', show: 'Billionaire Hidden Wife', hookPattern: 'Authority figure publicly humiliates protagonist', hookExample: 'दो कौड़ी की लड़की! सर से जुबान लड़ाती है? पैरों में गिर... और माफी माँग!', sequenceType: 'ORIGINAL', keyStrengths: ['Humiliation by power figure = instant empathy', 'Kartik-Anika: husband doesn\'t recognize wife (contract marriage)', 'Naqaabposh subplot adds second mystery layer'] },
+    { id: 'HSF-Akshay-LP5', show: 'His Secret Fortune', hookPattern: 'Extreme class discrimination — poor shamed like dogs at food', hookExample: 'फ़्री का खाना देखा नहीं कि कुत्तों की तरह मुँह मारने आ जाते हैं, भिखारी कहीं के।', sequenceType: 'JUMBLED', keyStrengths: ['Most visceral class-discrimination hook', 'Shanaya forced to marry Vaibhav who hides secret fortune', '4-question CTA = most complete Drama CTA structure'] },
+    { id: 'BH-Prakash-LP1', show: 'Beggar Husband', hookPattern: 'Forced marriage resistance — bride refuses the beggar groom', hookExample: 'मैं… मैं इस भिखारी से कभी शादी नहीं करूंगी! छोड़ो मेरा हाथ!', sequenceType: 'ORIGINAL', keyStrengths: ['Dramatic irony: beggar = secretly rich Shaurya Rathore', 'Shipra\'s resistance = immediate protagonist agency', 'Raijaada family + Mukhtar revenge subplot'] },
+    { id: 'BH-Prakash-LP1-V1', show: 'Beggar Husband', hookPattern: 'V1 variant — same forced-marriage hook with tighter polish', hookExample: 'मैं… मैं इस भिखारी से कभी शादी नहीं करूंगी!', sequenceType: 'ORIGINAL', keyStrengths: ['V1 = 3 lines longer than base (93 vs 90 lines)', 'Same core hook, slightly different scene order', 'Both LP1 and LP1-V1 are confirmed P0'] },
   ],
   horror: [
     { id: 'STDL-Hasim-LP2-V1', show: 'Shiva Ek Pretyodha (Saya - The Dark Love)', hookPattern: 'Appearance-vs-identity surprise — funny observation reveals supernatural truth', hookExample: 'क्या? ये… ये हॉट, बॉडी-बिल्डर टाइप लड़का तांत्रिक है?', sequenceType: 'ORIGINAL', keyStrengths: ['Hook is curiosity not fear — unique Horror technique', 'Sensory atmospheric narration throughout', 'Supernatural identity teased, never explained', 'Love story angle makes horror accessible'] },
@@ -218,35 +262,114 @@ Return ONLY valid JSON. No preamble. No markdown.`
 
 // ══════════════════════════════════════════════════════════════════════════════
 // INTELLIGENT RULE-BASED EVALUATOR
-// Built from analysis of all 26 confirmed P0 scripts
-// Fantasy: TWAR (7), KOD/KODGN (5), TBG (2), PTS, PG, DFB, BKR = 16
-// Drama: MMP (2), EHK, BRHW, HSF, BH (2) = 7
-// Horror: STDL = 1   Total: 26 confirmed extraordinary performers
+// Built from deep analysis of all episode content + all promo files:
+// Fantasy (11 shows): TWAR, KOD/KODGN, TBG, RRSY, TLG, PTS, PG, DFB, DP, BHY, BKR
+// Drama (9 shows): MMP, ML, HSF, FTBY, EHK, ESSP, BHW/BRHW, BH, Ruthless
+// Horror (1 show): Shiva Ek Pretyodha (STDL)
+// 26 confirmed extraordinary P0 performers analyzed
 // ══════════════════════════════════════════════════════════════════════════════
 
-// Real P0 vocabulary extracted from actual scripts
+// Metadata header patterns that appear at the TOP of every .docx promo file
+// These must be skipped before looking for the actual hook line
+const METADATA_LINE_PATTERNS = [
+  /^show\s*(name|no|title)/i,
+  /^promo\s*(no|name|number|title)/i,
+  /^narrator\s*(voice|name|type)?/i,
+  /^voice\s*(over|type|o)/i,
+  /^character\s*(description|list|name|s)?[:\s-]/i,
+  /^genre\s*[:\s-]/i,
+  /^writer\s*[:\s-]/i,
+  /^v\/o\s*[:\s-]/i,
+  /^v\.o\.\s*[:\s-]/i,
+  /^(शो|प्रोमो|नरेटर|वॉइस\s*ओवर|चरित्र\s*(परिचय|विवरण))/i,
+  // Horizontal rules / separators
+  /^[-=_]{3,}$/,
+]
+
+// Show-specific vocabulary extracted from actual episode content (all 21 shows)
 const GENRE_VOCAB = {
-  Fantasy: ['शक्ति', 'स्तर', 'ड्रैगन', 'ब्रह्मांड', 'योद्धा', 'साम्राज्य', 'औकात', 'चेतना', 'बदला', 'तलवार', 'दिव्य', 'शक्तिशाली', 'अकेला', 'कमज़ोर', 'ताकत', 'विद्या', 'रहस्यमयी', 'शून्य', 'मोती', 'देव', 'राक्षस', 'योद्धा', 'dragon', 'warrior', 'power', 'level', 'rank', 'spirit', 'divine', 'realm', 'empire', 'clan', 'soul'],
-  Drama: ['शादी', 'भिखारी', 'दौलत', 'राज़', 'प्यार', 'धोखा', 'अमीर', 'गरीब', 'इज्जत', 'बेइज्जती', 'परिवार', 'पत्नी', 'पति', 'माँ', 'बाप', 'मंगेतर', 'सुहागरात', 'रिश्ता', 'मजबूरी', 'अपमान', 'secret', 'marriage', 'rich', 'poor', 'family', 'love', 'betrayal', 'hidden', 'identity'],
-  Horror: ['तांत्रिक', 'चुड़ैल', 'भूत', 'श्राप', 'ॐ', 'साया', 'डर', 'रहस्य', 'अंधेरा', 'आत्मा', 'दानव', 'शैतान', 'tantric', 'ghost', 'demon', 'curse', 'dark', 'fear', 'spirit', 'supernatural'],
+  Fantasy: [
+    // Universal Fantasy
+    'शक्ति', 'स्तर', 'योद्धा', 'साम्राज्य', 'दिव्य', 'बदला', 'तलवार', 'राक्षस', 'ब्रह्मांड', 'देव',
+    // The Warrior (TWAR)
+    'आकाश विष मोती', 'मिस्टिक वेन्स', 'गहन क्षेत्र', 'गहन कोर', 'फ्रोजन क्लाउड', 'सम्प्रदाय', 'स्वर्गीय खजाने', 'फ़ीनिक्स',
+    // King of Dragon (KOD)
+    'ड्रैगन किंग', 'तिलस्मी टुकड़ा', 'कॉन्ट्रैक्ट मैरिज', 'स्वर्ण ड्रैगन', 'दिव्य शक्तियाँ',
+    // The Beast Guru (TBG)
+    'जीवन-बंधन प्राणी', 'काली भुजा', 'स्वर्ग भवन', 'संजीवनी', 'अग्निगिरि विद्यापीठ', 'स्वर्ण गरुड़', 'चूजा',
+    // Purple Thunder Sovereign (PTS)
+    'इंद्रवज्र', 'तड़ित प्रहार', 'कच्ची बिजली', 'असुर सम्राट', 'अवेकनर', 'awakener',
+    // Primordial God (PG)
+    'स्पिरिट शक्ति', 'क्रिस्टल रूलर', 'स्पिरिट ग्रेड', 'राज नगर', 'डिवाइन वॉइस', 'संदूक', 'गूंगा',
+    // Divine Flame Burst (DFB)
+    'चेतना', 'पौराणिक चेतना', 'जीवा परिवार', 'नौरंगी अंडा', 'अर्य साम्राज्य', 'जीवांश',
+    // Divine Power (DP)
+    'मंगोला', 'रुद्रपुर', 'शक्ति स्तंभ', 'भविष्यवाणी', 'आचार्य',
+    // Brahmyodha (BHY)
+    'अग्नि शक्ति ग्रंथ', 'चक्र जागृत', 'रक्षक', 'इंद्रपुरी', 'शक्तिगोला', 'लॉकेट',
+    // Brahmand Ka Rakshak (BKR)
+    'अग्नि ड्रैगन', 'सोम ड्रैगन', 'ड्रैगन अकादमी', 'साधना', 'सपनोल्लास साम्राज्य',
+    // Rudra (RRSY)
+    'शून्य स्तर', 'मायावी जंगल', 'अंगूठी की दुनिया', 'छलावा', 'संजीवनी पौधा', 'माथे का निशान', 'दिव्य शरीर',
+    // The Legend Gods (TLG)
+    'नरक की तलवार', 'वनांचल', 'योद्धा सम्राट', 'दिव्य रक्त',
+    // English fantasy terms
+    'dragon', 'warrior', 'power', 'level', 'rank', 'spirit', 'divine', 'realm', 'empire', 'clan', 'soul', 'profound', 'cultivation',
+  ],
+  Drama: [
+    // Universal Drama
+    'शादी', 'दौलत', 'राज़', 'प्यार', 'धोखा', 'अमीर', 'गरीब', 'इज्जत', 'बेइज्जती', 'मजबूरी', 'अपमान',
+    // My Mysterious Princess (MMP)
+    'अनामिका', 'देवांश', 'नताशा', 'जीविका', 'बायोलॉजिकल', 'असली पहचान', 'ओबरॉय', 'सिंघानिया', 'मेडिकल जीनियस',
+    // Malang (ML)
+    'मृत्युंजय', 'सारंग', 'महक', 'मीरा', 'सारंग कॉर्पोरेशन', 'CEO', 'जबरदस्ती',
+    // His Secret Fortune (HSF)
+    'शनाया', 'वैभव', 'दादी', 'सीक्रेट फॉर्च्यून', 'छुपी दौलत',
+    // Fated To Be Yours (FTBY)
+    'आरोही', 'रुद्रांश राणा', 'फ्लाईओवर', 'मुझसे शादी कर लीजिए', 'कान्हा जी', 'SP',
+    // Empire of Hidden King (EHK)
+    'अथर्व', 'नैना', 'राजवीर', 'छुपा राजा', 'मंत्री', 'साहब',
+    // Ek Stranger Se Pyar (ESSP)
+    'सुहानी', 'अयान', 'नौकरानी पत्नी', 'कबीला', 'मुखिया', 'उत्तराखंड',
+    // Billionaire Hidden Wife (BHW/BRHW)
+    'कार्तिक', 'अनिका', 'दादाजी', 'बिलियनेयर', 'नकाबपोश', 'पहचान',
+    // Beggar Husband (BH)
+    'शौर्य राठौर', 'शिप्रा', 'रायजादा', 'मुख्तार', 'धर्मवीर', 'भिखारी',
+    // Ruthless (RL)
+    'अर्जुन', 'नायरा', 'मालिनी', 'थर्ड आई', 'समर', 'शिमला',
+    // Universal Drama English
+    'secret', 'marriage', 'rich', 'poor', 'family', 'love', 'betrayal', 'hidden', 'identity', 'billionaire', 'CEO',
+  ],
+  Horror: [
+    // Shiva Ek Pretyodha (STDL)
+    'तांत्रिक', 'चुड़ैल', 'भूत', 'श्राप', 'ॐ', 'साया', 'डर', 'रहस्य', 'अंधेरा', 'आत्मा',
+    'शिवा', 'काव्या', 'मंगलापुर', 'खौफनाक', 'प्रेत्योधा', 'दूल्हे-दुल्हन', 'तांत्रिक',
+    'ghost', 'demon', 'curse', 'dark', 'fear', 'spirit', 'supernatural', 'witch', 'tantric',
+  ],
 }
 
-// Real P0 hook patterns from actual scripts (all 26 confirmed P0s)
+// Hook conflict patterns drawn from ALL confirmed P0 scripts
 const HOOK_CONFLICT_PATTERNS = [
-  // Hindi confrontation/humiliation patterns (Drama + Fantasy P0s)
-  /औकात|नहीं है|कभी नहीं|नामर्द|भिखारी|गंदी|छोड़ो|मत करो|मरोगे|मार डालूँगी/,
-  // Direct threats / death stakes (TWAR)
-  /कब्र बनेगी|मौत|जान लेंगे|बर्बाद|तबाह|मिटा देंगे/,
-  // Relationship conflict / forced marriage (BH, KODGN, BRHW)
-  /शादी नहीं|रेट है|सुहागरात|माफी माँग|पैरों में गिर/,
-  // Challenge/mockery of protagonist (PTS, BKR, DFB, MMP)
-  /नाचेंगे|हँसाओगे|इतना कमज़ोर|निकम्मे|फटीचर|दो कौड़ी|गंदी नाली/,
-  // Distress cry (TBG-Shailendra)
-  /बचाओ|कोई मुझे|इज़्ज़त|दरिंदा/,
-  // Mystery/wonder hook (TBG-Akshay: "ये आँख कहाँ से आ गई?" — surprise not anger)
-  /कहाँ से आ|ये क्या है|ये कैसे|क्या हो रहा|कौन है ये|ये कहाँ से/,
-  // Horror curiosity hook (STDL: "ये… ये हॉट लड़का तांत्रिक है?")
-  /तांत्रिक है|भूत है|आत्मा है|चुड़ैल है/,
+  // Humiliation/mockery (PTS, BKR, DFB, MMP, BRHW, HSF, BH, EHK, HSF)
+  /औकात|नामर्द|भिखारी|गंदी नाली|दो कौड़ी|निकम्मे|फटीचर|इस भिखारी से|कुत्तों की तरह/,
+  // Direct threats / death (TWAR-Hasim)
+  /कब्र बनेगी|मौत|बर्बाद|तबाह|मिटा देंगे|कीमत.{0,20}मौत/,
+  // Relationship shock (BH, KODGN, BRHW, EHK)
+  /शादी नहीं|सुहागरात|माफी माँग|पैरों में गिर|रेट है तेरा/,
+  // Confrontation/refusal (TWAR-Akshay, MMP)
+  /थूकेंगे|सड़ेगी|गरीबी में|छोड़ो मेरा हाथ|कपड़े उतारो|आज रात.{0,20}के लिए/,
+  // Betrayal (KOD-LP3, TWAR)
+  /धोखा|सीने में घोंप|तलवार|तुमने धोखा|किसने.{0,15}आने दिया/,
+  // Distress cry (TBG-Shailendra-LP3)
+  /बचाओ|कोई मुझे बचाओ|इज़्ज़त लूट|दरिंदा/,
+  // Shock command (TWAR-Prakash)
+  /कपड़े उतारो|जिंदा रहना चाहती हो|अपने कपड़े/,
+  // Mystery/wonder (TBG-Akshay, TWAR-LP8)
+  /कहाँ से आ गई|मौत के बाद की दुनिया|ये क्या है|ये आँख|ये निशान/,
+  // Horror identity (STDL)
+  /तांत्रिक है|चुड़ैल का|भूत है|आत्मा है/,
+  // False accusation (TBG-LP3-V1, TBG-LP4)
+  /इज़्ज़त लूटने|इज़्ज़त लूट रहा|दरिंदा.{0,20}इज़्ज़त|ये दरिंदा/,
   // English conflict
   /never|won't|can't|stop|kill|die|hate|threat|danger|destroy/i,
 ]
@@ -293,14 +416,26 @@ function avgWc(lines) {
 }
 
 // ─── 1. HOOK LINE QUALITY (25%) ───────────────────────────────────────────────
-function scoreHookLine(lines) {
-  // Skip character description lines (>200 chars, no quotes)
-  let hookSearchLines = []
-  let startIdx = 0
-  for (let i = 0; i < Math.min(lines.length, 15); i++) {
-    if (lines[i].length < 300) { startIdx = i; break }
+function isMetadataLine(line) {
+  // All .docx promo files start with a metadata header block before the actual script.
+  // Lines like "Show Name - The Warrior", "Promo No - LP1", "Voice Over - Male",
+  // "Character Description:", etc. must be skipped to find the real hook.
+  if (METADATA_LINE_PATTERNS.some(p => p.test(line))) return true
+  // Short lines without any sentence-ending punctuation or quotes are likely labels/names
+  if (line.length <= 60 && !/[""“”?!।]/.test(line) && /^[A-Za-zऀ-ॿ\s()–—:,\d]+$/.test(line)) {
+    // But don't skip lines that are clearly narrative Hindi (have verb markers)
+    if (!/\b(है|था|हूँ|गया|रहा|करो|दो|लो|जाओ|होगा|पाएगा)\b/.test(line)) return true
   }
-  hookSearchLines = lines.slice(startIdx, startIdx + 8)
+  return false
+}
+
+function scoreHookLine(lines) {
+  // Skip the metadata header block at the top of every promo .docx file
+  let startIdx = 0
+  for (let i = 0; i < Math.min(lines.length, 25); i++) {
+    if (!isMetadataLine(lines[i])) { startIdx = i; break }
+  }
+  const hookSearchLines = lines.slice(startIdx, startIdx + 10)
 
   const hookIdx = hookSearchLines.findIndex(l => isDialogue(l))
   let score = 2
