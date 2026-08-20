@@ -116,7 +116,10 @@ export default function EvaluatorPage({ auth, onLogout }) {
     try {
       const res = await fetch(`${API_URL}/api/evaluate`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${auth.token}`
+        },
         body: JSON.stringify(form)
       })
 
