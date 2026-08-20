@@ -1,4 +1,4 @@
-import Anthropic from '@anthropic-ai/sdk'
+import { GoogleGenerativeAI } from '@google/generative-ai'
 
 export const config = { maxDuration: 60 }
 
@@ -312,21 +312,21 @@ export default async function handler(req, res) {
   if (script.trim().length < 50) {
     return res.status(400).json({ success: false, message: 'Script is too short. Please paste the full promo script.' })
   }
-  if (!process.env.ANTHROPIC_API_KEY) {
-    return res.status(500).json({ success: false, message: 'ANTHROPIC_API_KEY is not set in Vercel environment variables. Please add it in Vercel → Settings → Environment Variables.' })
+  if (!process.env.GEMINI_API_KEY) {
+    return res.status(500).json({ success: false, message: 'GEMINI_API_KEY is not set. Please add it in Vercel → Settings → Environment Variables.' })
   }
 
   try {
-    const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
-
-    const response = await client.messages.create({
-      model: 'claude-sonnet-4-6',
-      max_tokens: 4000,
-      system: SYSTEM_PROMPT,
-      messages: [{ role: 'user', content: buildUserPrompt(script, showName, genre, episodeRange || '1-50') }]
+    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY)
+    const model = genAI.getGenerativeModel({
+      model: 'gemini-1.5-flash',
+      systemInstruction: SYSTEM_PROMPT,
+      generationConfig: { maxOutputTokens: 4000, temperature: 0.3 }
     })
 
-    let text = response.content[0].text.trim()
+    const result = await model.generateContent(buildUserPrompt(script, showName, genre, episodeRange || '1-50'))
+    let text = result.response.text().trim()
+
     if (text.startsWith('```')) {
       text = text.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '')
     }
