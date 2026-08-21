@@ -121,6 +121,51 @@ RULE 9 — CTA: Exactly 3-4 questions. Order: latest cliffhanger → earlier mys
 RULE 10 — RATIO: 70% narration : 30% dialogue NON-NEGOTIABLE. No single dialogue chunk over 25 words.
 
 ═══════════════════════════════════════════════
+SECTION B2 — 7-STEP EVALUATION PROCESS (Walk Through In Order)
+═══════════════════════════════════════════════
+
+Before scoring any parameter, mentally walk through these 7 steps:
+
+STEP 1 — CHARACTER OBSERVATION
+From the script, extract: Who are the characters named? How do they speak (aggressive, soft, formal, street Hindi)? What is happening to them? What is their biggest desire or fear? Which events in the script have the most emotional punch?
+
+STEP 2 — HOOK LINE
+• Is the very first content line a character's spoken dialogue? (95% of the time it MUST be)
+• Count the words in the dialogue: is it 13 words or fewer? (HARD LIMIT — count every word)
+• Is it specific to THIS show's world — or could it belong to any show?
+• Does it make someone think "Wait — what? What happened? I need to hear this."
+• Test with 3 questions: (a) Does it make someone want to know what happened before/after? (b) Is it specific to THIS show's characters and world? (c) Is it under 13 words?
+
+STEP 3 — CONTEXT LINES
+After the hook, are there 2-4 lines that establish: WHO is this character + WHERE are they + WHAT situation are they in + what is the UNRESOLVED TENSION? Do these create intrigue (not a full story summary)?
+
+STEP 4 — SEQUENCE TYPE
+First, identify which sequence is used:
+• ORIGINAL: Events flow chronologically (start of story → middle → end)
+• FLASHBACK: Starts in present crisis → jumps to past origin → returns to present (markers: "साल पहले", "उस दिन", "तभी उसे याद आया", "वो पल जब")
+• JUMBLED: Opens with a shocking moment from LATER in the story → provides earlier backstory → builds to cliffhanger (deliberately NOT chronological)
+Then check scene design: Does every scene start with tension/narration BEFORE the dialogue reveal? Is every character shown through action, their own dialogue, or internal thought — never passive description?
+
+STEP 5 — PACING
+After the midpoint, do lines get noticeably shorter? Does dialogue become sharper and quicker? Are transitions between scenes connected by emotion (not just plot logic)? The audience must feel "Something BIG is about to happen."
+
+STEP 6 — EPISODE 1 CALLBACK (Critical — often missing from weak scripts)
+Just BEFORE the final CTA questions, is there an Episode 1 callback?
+• OPTION A (preferred): The first 3-4 lines of Episode 1 quoted, then 1-2 lines summarizing how it all began
+• OPTION B: 2-3 crisp lines capturing the essence of the story's starting point
+• WHY: This creates a full-circle emotional moment — the audience feels the whole journey before the final CTA questions hit
+• If absent: explicitly note this in episodeCallback.present = false with feedback on what to add
+
+STEP 7 — ENDING & CTA
+Is the ending grand and cinematic with energy peaking? Does it resolve NOTHING (leaves audience desperate for more)?
+CTA questions MUST be exactly 3-4, in this specific order:
+• Q1 (LATEST): The most recent cliffhanger — what just happened in the latest episode?
+• Q2: An earlier mystery or unresolved tension from deeper in the story
+• Q3: A character/relationship question left open
+• Q4 (optional): A thematic or stakes-based question about the overall conflict
+Each question must be answerable ONLY by listening to the show. Max 10 words per question. Escalating urgency. Ends with Pocket FM download mention.
+
+═══════════════════════════════════════════════
 SECTION C — EVALUATION FRAMEWORK
 ═══════════════════════════════════════════════
 
@@ -191,7 +236,12 @@ Return ONLY valid JSON — no markdown fences, no preamble:
   "weakPoints": [{"issue": "...", "whyItFails": "...", "location": "where in script"}],
   "rewriteSuggestions": [{"original": "actual line from script", "rewritten": "improved version", "reason": "why stronger"}],
   "p0Comparison": {"closestP0Script": "ID (Show)", "whatP0DoesDifferently": "...", "keyLessons": ["...", "...", "..."]},
-  "genreSpecificFeedback": "genre-specific observations"
+  "genreSpecificFeedback": "genre-specific observations",
+  "sequenceType": "ORIGINAL or FLASHBACK or JUMBLED — which type is this script using?",
+  "episodeCallback": {
+    "present": false,
+    "feedback": "Is Episode 1 callback present just before the CTA? If not, what exactly should be added and where?"
+  }
 }`
 
 // All 26 confirmed P0 scripts (extraordinary performers) as of August 2026
@@ -306,14 +356,30 @@ ${script}
 ACTUAL P0 BENCHMARK SCRIPTS — ${benchmarkLabel}:
 ${p0Summary}
 
-IMPORTANT EVALUATION RULES:
-1. Quote ACTUAL lines from the submitted script in all feedback
-2. Do NOT give high scores unless genuinely earned — P2 is correct for weak scripts
-3. P0 requires ALL 7 parameters to be strong — a single weak parameter should drop the tier
-4. Compare the hook DIRECTLY to the P0 hook examples above — is it as specific, confrontational, and concise?
-5. Count the ACTUAL number of CTA questions — must be exactly 3-4
+EVALUATION INSTRUCTIONS — Follow the 7-Step Process:
 
-Return ONLY valid JSON. No preamble. No markdown.`
+STEP 1: Observe characters, their speech style, and the most emotionally punchy events in this script.
+
+STEP 2: Find the first content line. Is it character dialogue? Count the words (HARD LIMIT: 13 words). Is it specific to "${showName}"? Does it stop the scroll? Compare it DIRECTLY to the P0 hook examples above.
+
+STEP 3: Find the 2-4 context lines after the hook. Do they answer WHO/WHERE/WHAT/TENSION without over-explaining?
+
+STEP 4: Identify the SEQUENCE TYPE used (ORIGINAL / FLASHBACK / JUMBLED). Does each scene start with tension before the character reveal? Is every character active (not passive)?
+
+STEP 5: Check pacing — does the second half have shorter, sharper lines? Are transitions smooth and emotional?
+
+STEP 6 (CRITICAL — Episode 1 Callback): Look in the last 25% of the script, just BEFORE the CTA questions. Is there a callback to Episode 1 — either 3-4 lines from the very beginning of the show OR a 2-3 line summary of how the story started? Set episodeCallback.present accordingly.
+
+STEP 7: Check the ending — is it grand and cinematic? Count the CTA questions: must be EXACTLY 3-4 क्या questions in order (latest cliffhanger → earlier mystery → character/relationship → optional thematic). Each must be answerable only by listening to the show.
+
+STRICT SCORING RULES:
+• Quote ACTUAL lines from the submitted script in ALL feedback (not generic phrases)
+• Do NOT give high scores unless genuinely earned — P2 is correct for weak scripts
+• P0 requires ALL 7 parameters to be strong — one weak parameter drops the tier
+• Hook must match the directness and specificity of the P0 examples above
+• If Episode 1 callback is missing, this MUST appear as a weak point with specific advice on what to add
+
+Return ONLY valid JSON. No preamble. No markdown fences.`
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
@@ -611,47 +677,67 @@ function scoreSequence(lines, fullText) {
   const firstDiaLine = lines.find(l => isDialogue(l)) || ''
   const firstDiaText = extractDialogueText(firstDiaLine).toLowerCase()
 
-  let score = 4
+  let score = 3
   const parts = []
 
-  // Crisis-opening check (from actual P0 patterns)
-  const crisisOpening = HOOK_CONFLICT_PATTERNS.some(p => p.test(firstDiaText)) ||
-    /!/.test(firstDiaLine)
+  // ── SEQUENCE TYPE DETECTION ──────────────────────────────────────────────────
+  // FLASHBACK markers (present→past→present structure)
+  const flashbackMarkers = [
+    'साल पहले', 'महीने पहले', 'दिन पहले', 'तब से',
+    'उस दिन', 'उसी दिन', 'उस रात', 'उस वक्त',
+    'years ago', 'months ago', 'flashback',
+    'तभी उसे याद आया', 'वो पल याद', 'याद आया वो दिन',
+    'एक साल पहले', 'दो साल पहले', 'तीन साल पहले',
+    'पाँच साल पहले', 'दस साल पहले',
+  ]
+  const flashbackCount = flashbackMarkers.filter(w => lower.includes(w)).length
+  const hasFlashback = flashbackCount >= 1
 
-  if (crisisOpening) {
-    score += 3
-    parts.push('Script opens at peak crisis/conflict — JUMBLED or FLASHBACK sequence technique. P0 promos drop the listener into maximum tension immediately.')
-  } else {
-    parts.push('Opening dialogue lacks immediate crisis — P0 promos open at the most dramatic moment first. See BH hook ("मैं इस भिखारी से शादी नहीं करूंगी!") or BRHW hook ("पैरों में गिर... माफी माँग!")')
-  }
+  // JUMBLED markers (non-chronological shock-first structure)
+  // A JUMBLED script opens with peak shock AND has backstory/origin later
+  const crisisOpening = HOOK_CONFLICT_PATTERNS.some(p => p.test(firstDiaText)) || /!/.test(firstDiaLine)
+  const hasBackstory = /इसकी शुरुआत|यहाँ से शुरू|शुरू हुई थी|शुरू हुआ था|असल में|दरअसल|origin|पहले से|बहुत पहले/.test(lower)
+  const isJumbled = crisisOpening && hasBackstory && !hasFlashback
 
-  // Flashback / time-shift detection
-  const flashbackWords = ['तीन साल पहले', 'एक महीने पहले', 'साल पहले', 'तब से', 'उस दिन', 'years ago', 'months ago', 'one year', 'इसी के साथ', 'आँखों के सामने', 'यादें', 'flashback', 'तभी उसे याद आया', 'वो पल याद', 'उसी पल']
-  const hasFlashback = flashbackWords.some(w => lower.includes(w))
-
+  // Determine and report sequence type
+  let detectedType = 'ORIGINAL'
   if (hasFlashback) {
+    detectedType = 'FLASHBACK'
     score += 2
-    parts.push('Flashback/time-shift structure detected — effective for showing protagonist\'s origin or reversal arc (used in EHK, DFB, BRHW)')
+    parts.push(`FLASHBACK sequence detected (${flashbackCount} time-marker(s) found) — correct technique. Structure: present crisis → past origin → present consequence. This is used in TWAR-Pranjali-LP7, DFB-Hasim-LP1, KODGN-Hasim-LP3-V2.`)
+  } else if (isJumbled) {
+    detectedType = 'JUMBLED'
+    score += 2
+    parts.push('JUMBLED sequence detected — opens with peak shock moment, then provides backstory. This is the highest-impact sequence type used in TBG-Akshay-LP3 and BKR-Hasim-LP3. Each cut must raise a new question.')
   } else {
-    parts.push('No flashback detected — consider FLASHBACK or JUMBLED sequence to add depth: show crisis first, then reveal why it matters')
+    detectedType = 'ORIGINAL'
+    parts.push('ORIGINAL sequence (chronological) — events flow in story order. This works when the natural order creates enough tension. If not, consider JUMBLED: open with the most shocking moment first, then reveal why it happened.')
   }
 
-  // Scene transitions
-  const transitions = ['तभी', 'लेकिन', 'मगर', 'अगले ही पल', 'इसके बाद', 'उसी पल', 'देखते ही', 'par ', 'suddenly', 'then ', 'but ', 'however', 'at that moment']
+  // ── CRISIS-OPENING CHECK ─────────────────────────────────────────────────────
+  if (crisisOpening) {
+    score += 2
+    parts.push('Script opens at peak crisis/conflict ✓ — correct P0 technique. Listener is dropped into maximum tension immediately.')
+  } else {
+    parts.push('Opening lacks immediate crisis — every P0 script opens with maximum tension. Compare: BH "मैं इस भिखारी से शादी नहीं करूंगी!" or BRHW "पैरों में गिर... माफी माँग!" — listener must feel the conflict in the very first line.')
+  }
+
+  // ── TRANSITIONS ──────────────────────────────────────────────────────────────
+  const transitions = ['तभी', 'लेकिन', 'मगर', 'अगले ही पल', 'इसके बाद', 'उसी पल', 'देखते ही', 'अचानक', 'suddenly', 'then', 'but', 'however', 'at that moment', 'इसी के साथ', 'और तभी']
   const transCount = transitions.filter(w => lower.includes(w)).length
 
   if (transCount >= 5) {
     score += 2
-    parts.push(`${transCount} transition markers — good scene flow with emotional connective narration (Rule 5)`)
+    parts.push(`${transCount} transition markers (Rule 5 ✓) — smooth emotional bridges between scenes. Scenes flow naturally.`)
   } else if (transCount >= 3) {
     score += 1
-    parts.push(`${transCount} transitions — add more emotional bridges between scenes. Rule 5: transitions must link by emotion, not just plot.`)
+    parts.push(`${transCount} transition markers — good, but add more emotional bridges. Rule 5: every scene cut must be connected by emotion not plot. Ask: if you removed the narration bridge, would the cut feel abrupt?`)
   } else {
-    parts.push('Very few scene transitions — scenes feel disconnected. Add connective narration (तभी, अगले ही पल, लेकिन) between scenes.')
+    parts.push(`Only ${transCount} transition markers — scenes feel disconnected. Add connective narration (तभी, अगले ही पल, लेकिन, अचानक) between each scene to guide the listener emotionally.`)
   }
 
   score = Math.max(1, Math.min(10, Math.round(score)))
-  return { score, feedback: parts.join('. ') }
+  return { score, feedback: parts.join('. '), sequenceType: detectedType }
 }
 
 // ─── 4. SCENE DESIGN (15%) ────────────────────────────────────────────────────
@@ -703,9 +789,15 @@ function scoreSceneDesign(lines, fullText) {
     parts.push('Internal monologue present — effective character revelation technique (used in TWAR: "मन ही मन", "अगर मेरी मौत तय है...")')
   }
 
+  const totalScenes = lines.filter(l => isDialogue(l) && !isCTALine(l)).length
   if (tensionBeforeScene >= 3) {
+    const coveragePercent = totalScenes > 0 ? Math.round((tensionBeforeScene / totalScenes) * 100) : 0
     score += 1
-    parts.push(`${tensionBeforeScene} scenes have narration setup before the dialogue — correct tension-before-reveal technique (Rule 4, Step 1)`)
+    parts.push(`${tensionBeforeScene}/${totalScenes} dialogue scenes have narration setup before the line (${coveragePercent}% coverage) — correct tension-before-reveal technique (Rule 4, Step 4). Every scene should have tension FIRST.`)
+  } else if (tensionBeforeScene > 0) {
+    parts.push(`Only ${tensionBeforeScene}/${totalScenes} scenes have narration before the dialogue reveal. Rule 4 (Step 4): EVERY scene should start with tension or a setup narration line, then reveal the character/dialogue. Add build-up narration before each key dialogue moment.`)
+  } else {
+    parts.push('No tension-before-scene pattern detected. Rule 4 (Step 4): Before every dialogue, add a narration line that creates anticipation — "तभी...", "अचानक...", "उसी पल जब..." — so the audience feels something is coming before they hear the character speak.')
   }
 
   score = Math.max(1, Math.min(10, Math.round(score)))
@@ -762,53 +854,67 @@ function scorePacing(lines, fullText) {
 
 // ─── 6. ENDING & CTA (10%) ────────────────────────────────────────────────────
 function scoreEnding(lines, fullText) {
-  const lastLines = lines.slice(-8).join(' ')
+  const lastLines = lines.slice(-10).join(' ')
   const lower = lastLines.toLowerCase()
   const fullLower = fullText.toLowerCase()
 
-  let score = 3
+  let score = 2
   const parts = []
 
-  // Count क्या-type questions (the real CTA format from P0 scripts)
-  const kyaQuestions = (lastLines.match(/क्या /g) || []).length
-  const questionMarks = (lastLines.match(/\?/g) || []).length
+  // STEP 6 CHECK — Episode 1 Callback (just before CTA)
+  const ep1Callback = detectEpisodeCallback(lines, fullText)
+  if (ep1Callback.present) {
+    score += 2
+    parts.push(`Episode 1 callback present (Step 6 ✓) — ${ep1Callback.evidence}. Creates full-circle emotional moment that primes the listener before CTA questions`)
+  } else {
+    parts.push('MISSING: Episode 1 callback (Step 6). Just before the CTA questions, add 3-4 lines from the very opening of Episode 1, then summarize Ep 1 in 1-2 lines. This full-circle moment significantly increases emotional impact before the final questions hit.')
+  }
+
+  // STEP 7 — CTA Question Count and Order
+  // Look in last 10 lines for CTA questions
+  const ctaSection = lines.slice(-10)
+  const ctaSectionText = ctaSection.join(' ')
+  const kyaQuestions = (ctaSectionText.match(/क्या /g) || []).length
+  const questionMarks = (ctaSectionText.match(/\?/g) || []).length
   const effectiveQ = Math.max(kyaQuestions, questionMarks)
 
   if (effectiveQ >= 3 && effectiveQ <= 4) {
-    score += 5
-    parts.push(`${effectiveQ} CTA questions — exactly right. Rule 9: 3-4 questions in order: latest cliffhanger → earlier mystery → character/relationship question`)
+    score += 4
+    parts.push(`${effectiveQ} CTA questions (Rule 9 ✓) — correct count. Check order: Q1=latest cliffhanger, Q2=earlier mystery, Q3=character/relationship, Q4=optional thematic. Each answerable only by listening.`)
   } else if (effectiveQ === 2) {
-    score += 3
-    parts.push(`2 CTA questions — good start. Add 1 more. P0 template: क्या [cliffhanger]? क्या [earlier mystery]? क्या [relationship/character]? जानने के लिए Pocket FM डाउनलोड करें।`)
+    score += 2
+    parts.push(`Only 2 CTA questions — add 1 more. P0 template: क्या [latest cliffhanger]? क्या [earlier mystery]? क्या [character secret/relationship]? जानने के लिए डाउनलोड करें Pocket FM।`)
   } else if (effectiveQ >= 5) {
-    score += 3
-    parts.push(`${effectiveQ} CTA questions — slightly too many. Trim to 3-4. Each question should be progressively more mysterious.`)
+    score += 2
+    parts.push(`${effectiveQ} CTA questions — too many. Trim to exactly 3-4. Each question must feel more urgent than the last. Cut the weakest one.`)
   } else if (effectiveQ === 1) {
     score += 1
-    parts.push(`Only 1 CTA question — needs 2 more. P0 CTAs: BH has 3 क्या questions, TWAR has 3, HSF has 4. Each question escalates stakes.`)
+    parts.push(`Only 1 CTA question — needs 2-3 more. BH has 3 क्या questions, TWAR has 3, HSF has 4. Questions must escalate: latest event → earlier mystery → character secret`)
   } else {
-    parts.push('No CTA questions detected — Rule 9: MUST end with exactly 3-4 urgent क्या questions + Pocket FM download mention. This drives listener action.')
+    parts.push('No CTA questions found — CRITICAL FAILURE (Rule 9). Script MUST end with exactly 3-4 urgent क्या questions. Without questions, listeners have no reason to download and listen.')
   }
 
   // Pocket FM mention
   const hasPF = CTA_PATTERNS.pocketfm.test(lower) || CTA_PATTERNS.pocketfm.test(fullLower)
   if (hasPF) {
     score += 1
-    parts.push('Pocket FM / download / listen CTA present at end ✓')
+    parts.push('Pocket FM / download mention present ✓')
   } else {
-    parts.push('Missing Pocket FM mention — end with "जानने के लिए डाउनलोड करें Pocket FM"')
+    parts.push('Missing Pocket FM mention — end with "जानने के लिए डाउनलोड करें Pocket FM और सुनिए [Show Name]"')
   }
 
-  // Grand language before CTA
-  const preCTA = lines.slice(-12, -4).join(' ').toLowerCase()
-  const grandWords = ['सब कुछ', 'duniya', 'आखिरी', 'किस्मत', 'सच', 'everything', 'fate', 'final', 'truth', 'दुनिया', 'हमेशा', 'never again', 'अब कभी नहीं']
+  // Grand/cinematic language before CTA (Rule 8)
+  const preCTA = lines.slice(-15, -5).join(' ').toLowerCase()
+  const grandWords = ['सब कुछ', 'आखिरी', 'किस्मत', 'सच', 'दुनिया', 'हमेशा', 'अब कभी नहीं', 'बदल देगा', 'एक सच', 'आखिर', 'इस लम्हे', 'कभी नहीं']
   if (grandWords.some(w => preCTA.includes(w))) {
     score += 1
-    parts.push('Grand, cinematic language before CTA — Rule 8: energy peaks before the questions')
+    parts.push('Grand, cinematic language before CTA (Rule 8 ✓) — energy peaks correctly')
+  } else {
+    parts.push('Ending language feels flat before CTA. Rule 8: the moment just before the CTA questions must feel GRAND — largest, most cinematic image of the whole promo.')
   }
 
   score = Math.max(1, Math.min(10, Math.round(score)))
-  return { score, feedback: parts.join('. ') }
+  return { score, feedback: parts.join('. '), episodeCallback: ep1Callback }
 }
 
 // ─── 7. NARRATION/DIALOGUE RATIO (10%) ───────────────────────────────────────
@@ -860,6 +966,47 @@ function scoreRatio(lines, fullText) {
 
   score = Math.max(1, Math.min(10, Math.round(score)))
   return { score, feedback: parts.join('. ') }
+}
+
+// ─── EPISODE 1 CALLBACK DETECTOR ─────────────────────────────────────────────
+function detectEpisodeCallback(lines, fullText) {
+  const lower = fullText.toLowerCase()
+
+  // Explicit Episode 1 references
+  const ep1Explicit = [
+    'episode 1', 'ep 1', 'ep-1', 'ep.1', 'ep 01',
+    'एपिसोड 1', 'एपिसोड एक', 'पहला एपिसोड', 'पहले एपिसोड',
+  ]
+
+  // Story-start / journey-beginning markers
+  const startMarkers = [
+    'शुरुआत में', 'शुरू हुई', 'शुरू हुआ था', 'शुरुआत हुई',
+    'पहली बार जब', 'जिस दिन', 'उस दिन से', 'उसी दिन',
+    'तभी से', 'सब शुरू हुआ', 'यहाँ से शुरू', 'यहीं से शुरू',
+    'यही वो पल', 'जब पहली बार', 'वो पहला दिन',
+    'जब से मिले', 'जब से आई', 'जब से आया',
+    'इसी पल से', 'इस एक पल ने', 'उस दिन किसे पता था',
+  ]
+
+  // Look in the last 30% of the script, before the CTA section
+  const ctaIdx = lines.findIndex(l => isCTALine(l))
+  const contentLines = ctaIdx > 0 ? lines.slice(0, ctaIdx) : lines
+  const startOfLastSection = Math.floor(contentLines.length * 0.65)
+  const lastSection = contentLines.slice(startOfLastSection)
+  const lastText = lastSection.join(' ').toLowerCase()
+
+  for (const marker of ep1Explicit) {
+    if (lastText.includes(marker.toLowerCase())) {
+      return { present: true, evidence: `Episode 1 explicit reference: "${marker}"` }
+    }
+  }
+  for (const marker of startMarkers) {
+    if (lastText.includes(marker.toLowerCase())) {
+      return { present: true, evidence: `Story-beginning callback: "${marker}"` }
+    }
+  }
+
+  return { present: false, evidence: 'No Episode 1 callback found in pre-ending section' }
 }
 
 // Per-show vocab lists for show-specific feedback
@@ -984,25 +1131,62 @@ function runIntelligentEvaluation(script, showName, genre) {
     ]
   }
 
+  // Extract sequenceType and episodeCallback from their scoring functions
+  const sequenceType = parameterScores.sequence.sequenceType || 'ORIGINAL'
+  const episodeCallback = parameterScores.ending.episodeCallback || { present: false, evidence: 'Not evaluated' }
+
+  // Build rewrite suggestions
+  const firstDia = lines.find(l => isDialogue(l)) || ''
+  const rewriteSuggestions = []
+
+  if (parameterScores.hookLine.score < 7) {
+    rewriteSuggestions.push({
+      original: firstDia.substring(0, 120) || '[Opening line of your script]',
+      rewritten: `${showLabel} hook pattern: "${p0s[0].hookExample}"\n\nYour hook should be: character name + emotion + spoken dialogue in quotes + under 13 words + immediate conflict/crisis`,
+      reason: `Rule 1: Hook MUST be character dialogue under 13 words with immediate crisis. ${p0s[0].id} achieves this with: "${p0s[0].hookPattern}"`
+    })
+  }
+
+  if (!episodeCallback.present) {
+    rewriteSuggestions.push({
+      original: '[The section just before your CTA questions]',
+      rewritten: `[Insert 3-4 opening lines from Episode 1 of "${showName}" here]\n\n[Then add 1-2 lines summarizing how the story began — what was the first moment that changed everything?]\n\n[Immediately follow with the CTA questions]`,
+      reason: 'Step 6 (Episode 1 Callback): P0 promos create a full-circle emotional moment just before the CTA questions. It reminds the audience of where it all started and makes the ending feel inevitable. This is currently missing.'
+    })
+  }
+
+  if (parameterScores.ending.score < 7 && episodeCallback.present) {
+    const ctaEx = showData.genre === 'Fantasy'
+      ? 'क्या [protagonist] अपनी खोई शक्ति वापस पा पाएगा?\nक्या [antagonist] का असली रहस्य सामने आएगा?\nक्या [protagonist] ब्रह्मांड को बचाने के लिए काफी शक्तिशाली बन पाएगा?\n\nजानने के लिए डाउनलोड करें Pocket FM और सुनिए "[Show Name]"'
+      : showData.genre === 'Drama'
+        ? 'क्या [protagonist] का राज़ कभी सामने आएगा?\nक्या ये रिश्ता कभी सच्चे प्यार में बदल पाएगा?\nआखिर [hidden identity] की सच्चाई क्या है?\n\nजानने के लिए डाउनलोड करें Pocket FM और सुनिए "[Show Name]"'
+        : 'क्या [protagonist] उस [supernatural threat] का सामना कर पाएगा?\nआखिर वो [mystery element] क्या है?\nक्या [relationship] इस रहस्य को झेल पाएगा?\n\nजानने के लिए डाउनलोड करें Pocket FM और सुनिए "[Show Name]"'
+    rewriteSuggestions.push({
+      original: 'Current CTA / ending section',
+      rewritten: ctaEx,
+      reason: `Rule 9: Exactly 3-4 क्या questions in order: latest cliffhanger → earlier mystery → character/relationship. Each must be answerable ONLY by listening. See ${p0s[0].id} CTA pattern.`
+    })
+  }
+
   return {
     overallScore,
     tier,
     tierLabel,
     parameterScores,
+    sequenceType,
+    episodeCallback: {
+      present: episodeCallback.present,
+      feedback: episodeCallback.present
+        ? `Episode 1 callback detected ✓ — ${episodeCallback.evidence}`
+        : 'MISSING: No Episode 1 callback found before the CTA questions. Add 3-4 opening lines from Episode 1, then 1-2 lines summarizing how the story began. This full-circle moment significantly lifts the emotional impact of the ending.'
+    },
     whatIsWorking: sorted.slice(0, 3).map(([k, v]) => `${PARAM_LABELS[k]} (${v.score}/10): ${v.feedback.split('.')[0]}`),
-    weakPoints: sorted.slice(-3).filter(([, v]) => v.score < 8).map(([k, v]) => ({ issue: `${PARAM_LABELS[k]}: ${v.feedback.split('.')[0]}`, whyItFails: PARAM_WHY[k], location: v.feedback.split('.').slice(-1)[0].trim() || `Overall ${PARAM_LABELS[k].toLowerCase()}` })),
-    rewriteSuggestions: (() => {
-      const s = []
-      const firstDia = lines.find(l => isDialogue(l)) || ''
-      if (parameterScores.hookLine.score < 7) {
-        s.push({ original: firstDia.substring(0, 120) || '[Opening line of your script]', rewritten: `${showLabel} hook pattern: "${p0s[0].hookExample}"\n\nYour hook should be: character name + emotion + dialogue in quotes + under 13 words + immediate conflict`, reason: `Rule 1: Hook must be character dialogue under 13 words with immediate crisis. ${p0s[0].id} achieves this with: "${p0s[0].hookPattern}"` })
-      }
-      if (parameterScores.ending.score < 7) {
-        const ctaEx = showData.genre === 'Fantasy' ? 'क्या [protagonist] अपनी खोई शक्ति वापस पा पाएगा?\nक्या [antagonist] का असली रहस्य सामने आएगा?\nक्या [protagonist] ब्रह्मांड को बचाने के लिए काफी शक्तिशाली बन पाएगा?\n\nजानने के लिए डाउनलोड करें Pocket FM और सुनिए "[Show Name]"' : showData.genre === 'Drama' ? 'क्या [protagonist] का राज़ कभी सामने आएगा?\nक्या ये रिश्ता कभी सच्चे प्यार में बदल पाएगा?\nआखिर [hidden identity] की सच्चाई क्या है?\n\nजानने के लिए डाउनलोड करें Pocket FM और सुनिए "[Show Name]"' : 'क्या [protagonist] उस [supernatural threat] का सामना कर पाएगा?\nआखिर वो [mystery element] क्या है?\nक्या [relationship] इस रहस्य को झेल पाएगा?\n\nजानने के लिए डाउनलोड करें Pocket FM और सुनिए "[Show Name]"'
-        s.push({ original: 'Current CTA / ending section', rewritten: ctaEx, reason: `Rule 9: Exactly 3-4 क्या questions in order: latest cliffhanger → earlier mystery → character/relationship. Each answerable ONLY by listening. See ${p0s[0].id} CTA pattern.` })
-      }
-      return s.slice(0, 2)
-    })(),
+    weakPoints: sorted.slice(-3).filter(([, v]) => v.score < 8).map(([k, v]) => ({
+      issue: `${PARAM_LABELS[k]}: ${v.feedback.split('.')[0]}`,
+      whyItFails: PARAM_WHY[k],
+      location: v.feedback.split('.').slice(-1)[0].trim() || `Overall ${PARAM_LABELS[k].toLowerCase()}`
+    })),
+    rewriteSuggestions: rewriteSuggestions.slice(0, 2),
     p0Comparison,
     genreSpecificFeedback: buildGenreFeedback(script, genre, showName),
   }
