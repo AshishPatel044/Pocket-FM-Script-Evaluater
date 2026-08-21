@@ -508,13 +508,25 @@ function parseLines(text) {
   return text.split(/\n+/).map(l => l.trim()).filter(l => l.length > 2)
 }
 
-function isDialogue(line) {
-  // Hindi/English quotes or Character: "text" format
-  return /[""“”‘’]/.test(line) || /^[A-Za-zऀ-ॿ]+[^:]{0,30}:\s*[""]/.test(line)
+function isNarrationLine(line) {
+  return /^(नरेशन|Narrator|Narration|\[V\/O\]|\[नरेशन\]|Voice\s*Over|V\.O\.|V\/O)\s*[:–—]?/i.test(line)
 }
 
-function isNarrationLine(line) {
-  return /^(नरेशन|Narrator|Narration|\[V\/O\]|Voice Over)/i.test(line)
+function isDialogue(line) {
+  // Narration/V.O. lines are explicitly NOT dialogue
+  if (isNarrationLine(line)) return false
+  // Has Hindi/English quote marks — clearly dialogue
+  if (/[“”””’’]/.test(line)) return true
+  // Character name: dialogue — “Name: text” or “Name (emotion): text”
+  // Requires actual content (Hindi/English letter) after the colon
+  if (/^[ऀ-ॿa-zA-Z][ऀ-ॿa-zA-Z\s]{0,30}(?:\([^)]{0,40}\))?\s*:\s*[ऀ-ॿa-zA-Z]/.test(line)) {
+    if (!METADATA_LINE_PATTERNS.some(p => p.test(line))) return true
+  }
+  // Character name dash format — “Name - dialogue” or “Name – dialogue”
+  if (/^[ऀ-ॿa-zA-Z][ऀ-ॿa-zA-Z\s]{1,30}\s*[-–—]\s*[ऀ-ॿa-zA-Z]/.test(line)) {
+    if (!METADATA_LINE_PATTERNS.some(p => p.test(line))) return true
+  }
+  return false
 }
 
 function isCTALine(line) {
@@ -522,9 +534,15 @@ function isCTALine(line) {
 }
 
 function extractDialogueText(line) {
+  // Extract text within quotes first
   const m = line.match(/"([^"]{2,})"|"([^"]{2,})"/)
   if (m) return (m[1] || m[2]).trim()
-  // No quotes — return the line itself if it looks like dialogue
+  // Character name: dialogue (colon format, optional stage direction)
+  const colonMatch = line.match(/^[ऀ-ॿa-zA-Z][ऀ-ॿa-zA-Z\s]{0,30}(?:\([^)]*\))?\s*:\s*(.+)$/)
+  if (colonMatch) return colonMatch[1].trim()
+  // Character name - dialogue (dash format)
+  const dashMatch = line.match(/^[ऀ-ॿa-zA-Z][ऀ-ॿa-zA-Z\s]{1,30}\s*[-–—]\s*(.+)$/)
+  if (dashMatch) return dashMatch[1].trim()
   return line.replace(/^[^:]+:\s*/, '').trim()
 }
 
@@ -539,14 +557,17 @@ function avgWc(lines) {
 
 // ─── 1. HOOK LINE QUALITY (25%) ───────────────────────────────────────────────
 function isMetadataLine(line) {
-  // All .docx promo files start with a metadata header block before the actual script.
-  // Lines like "Show Name - The Warrior", "Promo No - LP1", "Voice Over - Male",
-  // "Character Description:", etc. must be skipped to find the real hook.
+  // Explicit metadata patterns (always metadata regardless of what follows)
   if (METADATA_LINE_PATTERNS.some(p => p.test(line))) return true
-  // Short lines without any sentence-ending punctuation or quotes are likely labels/names
-  if (line.length <= 60 && !/[""“”?!।]/.test(line) && /^[A-Za-zऀ-ॿ\s()–—:,\d]+$/.test(line)) {
-    // But don't skip lines that are clearly narrative Hindi (have verb markers)
-    if (!/\b(है|था|हूँ|गया|रहा|करो|दो|लो|जाओ|होगा|पाएगा)\b/.test(line)) return true
+  // Character: dialogue format is NOT metadata — return false immediately
+  // Example: “अर्जुन: मैं तुमसे प्यार करता हूँ” or “Arjun (angrily): Stop!”
+  if (/^[ऀ-ॿa-zA-Z][ऀ-ॿa-zA-Z\s]{1,30}(?:\([^)]{0,40}\))?\s*:\s*[ऀ-ॿa-zA-Z]/.test(line)) {
+    return false
+  }
+  // Short lines without sentence-ending punctuation or quotes — likely header labels
+  if (line.length <= 60 && !/[“”””?!।]/.test(line) && /^[A-Za-zऀ-ॿ\s()–—:,\d]+$/.test(line)) {
+    // Don't skip lines with clear Hindi verb markers (they're narrative content)
+    if (!/\b(है|था|हूँ|गया|रहा|करो|दो|लो|जाओ|होगा|पाएगा|हुआ|हुई|आया|आई|गई|देगा|देगी|बनेगा)\b/.test(line)) return true
   }
   return false
 }
@@ -871,12 +892,12 @@ function scoreEnding(lines, fullText) {
   }
 
   // STEP 7 — CTA Question Count and Order
-  // Look in last 10 lines for CTA questions
-  const ctaSection = lines.slice(-10)
+  // Look in last 15 lines for CTA questions (some scripts have longer CTA sections)
+  const ctaSection = lines.slice(-15)
   const ctaSectionText = ctaSection.join(' ')
   const kyaQuestions = (ctaSectionText.match(/क्या /g) || []).length
   const questionMarks = (ctaSectionText.match(/\?/g) || []).length
-  const effectiveQ = Math.max(kyaQuestions, questionMarks)
+  const effectiveQ = Math.max(kyaQuestions, Math.min(questionMarks, 6))
 
   if (effectiveQ >= 3 && effectiveQ <= 4) {
     score += 4
@@ -904,7 +925,7 @@ function scoreEnding(lines, fullText) {
   }
 
   // Grand/cinematic language before CTA (Rule 8)
-  const preCTA = lines.slice(-15, -5).join(' ').toLowerCase()
+  const preCTA = lines.slice(-20, -5).join(' ').toLowerCase()
   const grandWords = ['सब कुछ', 'आखिरी', 'किस्मत', 'सच', 'दुनिया', 'हमेशा', 'अब कभी नहीं', 'बदल देगा', 'एक सच', 'आखिर', 'इस लम्हे', 'कभी नहीं']
   if (grandWords.some(w => preCTA.includes(w))) {
     score += 1
@@ -1155,6 +1176,30 @@ function runIntelligentEvaluation(script, showName, genre) {
     })
   }
 
+  if (parameterScores.ratio.score < 6) {
+    rewriteSuggestions.push({
+      original: '[Dialogue-heavy section of your script]',
+      rewritten: `Convert dialogue exchanges to narration. Instead of:\nCharacter A: "..."\nCharacter B: "..."\n\nWrite:\n[Narration line describing Character A's action/emotion]\nCharacter A: "[Shorter, punchy line — max 25 words]"\n[Narration bridge connecting to next scene]`,
+      reason: 'Rule 10: 70% narration : 30% dialogue is non-negotiable. Narration carries emotional tone and story structure. No single dialogue chunk should exceed 25 words.'
+    })
+  }
+
+  if (parameterScores.sceneDesign.score < 6) {
+    rewriteSuggestions.push({
+      original: '[Any scene that describes characters passively]',
+      rewritten: `Add tension BEFORE every dialogue moment:\n[Narration: situation/tension building]\n[Character\'s internal thought or physical reaction]\nCharacter: "[Dialogue that reveals something about them]"\n\nExample structure from TBG-Akshay-LP3:\n"रुद्र की साँसें रुक गईं... [tension]\nमन ही मन सोचा — यह काली भुजा कहाँ से आई? [internal thought]\n"मेरे हाथ की लकीरों में… ये आँख कहाँ से आ गई?" [hook dialogue]"`,
+      reason: 'Rule 4 (Step 4): Every scene must start with tension/narration BEFORE the character speaks. Never describe characters passively — show them through thought, action, or confrontation.'
+    })
+  }
+
+  if (parameterScores.pacing.score < 6) {
+    rewriteSuggestions.push({
+      original: '[Second half of your script — after the midpoint]',
+      rewritten: `In the second half, shorten every line by 30-40%.\nBefore: "अर्जुन ने देखा कि वो लड़की जो उसकी ज़िंदगी में आई थी, वो असल में उसकी दुश्मन थी"\nAfter: "और तभी सच सामने आया।"\n"वो लड़की... उसकी दुश्मन थी।"\n\nCut transitions. Cut context. Only keep what raises stakes.`,
+      reason: 'Rule 6: After the midpoint, ACCELERATE. Shorter lines, sharper dialogue, faster cuts. The audience must feel "Something BIG is about to happen" — not read a story summary.'
+    })
+  }
+
   if (parameterScores.ending.score < 7 && episodeCallback.present) {
     const ctaEx = showData.genre === 'Fantasy'
       ? 'क्या [protagonist] अपनी खोई शक्ति वापस पा पाएगा?\nक्या [antagonist] का असली रहस्य सामने आएगा?\nक्या [protagonist] ब्रह्मांड को बचाने के लिए काफी शक्तिशाली बन पाएगा?\n\nजानने के लिए डाउनलोड करें Pocket FM और सुनिए "[Show Name]"'
@@ -1186,7 +1231,7 @@ function runIntelligentEvaluation(script, showName, genre) {
       whyItFails: PARAM_WHY[k],
       location: v.feedback.split('.').slice(-1)[0].trim() || `Overall ${PARAM_LABELS[k].toLowerCase()}`
     })),
-    rewriteSuggestions: rewriteSuggestions.slice(0, 2),
+    rewriteSuggestions: rewriteSuggestions.slice(0, 4),
     p0Comparison,
     genreSpecificFeedback: buildGenreFeedback(script, genre, showName),
   }
