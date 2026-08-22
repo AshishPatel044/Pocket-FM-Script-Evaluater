@@ -672,13 +672,13 @@ function isBareDialogueHook(line) {
   const words = wc(trimmed)
   if (words < 2 || words > 25) return false
   // Ends with ! — strong spoken dialogue signal (P0 examples: “बचाओ!”, “छोड़ो मेरा हाथ!”)
-  if (trimmed.endsWith(‘!’)) return true
+  if (trimmed.endsWith('!')) return true
   // Ends with ? — question dialogue (P0 examples: “ये आँख कहाँ से आ गई?”, “सुहागरात...?”)
-  if (trimmed.endsWith(‘?’)) return true
+  if (trimmed.endsWith('?')) return true
   // Contains strong conflict/hook patterns from confirmed P0 scripts
   if (HOOK_CONFLICT_PATTERNS.some(p => p.test(trimmed))) return true
   // Ends with ।/. and is short — could be impactful statement hook
-  if ((trimmed.endsWith(‘।’) || trimmed.endsWith(‘.’)) && words <= 14) {
+  if ((trimmed.endsWith('।') || trimmed.endsWith('.')) && words <= 14) {
     if (HOOK_CONFLICT_PATTERNS.some(p => p.test(trimmed))) return true
   }
   return false
