@@ -661,6 +661,42 @@ function isDialogue(line) {
   return false
 }
 
+// Detects bare dialogue hooks — Hindi promo scripts often write hooks as plain text
+// without character name prefix or quote marks. This is the most common P0 format.
+function isBareDialogueHook(line) {
+  if (!line || line.length < 3) return false
+  if (isNarrationLine(line)) return false
+  if (isMetadataLine(line)) return false
+  if (isCTALine(line)) return false
+  const trimmed = line.trim()
+  const words = wc(trimmed)
+  if (words < 2 || words > 25) return false
+  // Ends with ! — strong spoken dialogue signal (P0 examples: “बचाओ!”, “छोड़ो मेरा हाथ!”)
+  if (trimmed.endsWith(‘!’)) return true
+  // Ends with ? — question dialogue (P0 examples: “ये आँख कहाँ से आ गई?”, “सुहागरात...?”)
+  if (trimmed.endsWith(‘?’)) return true
+  // Contains strong conflict/hook patterns from confirmed P0 scripts
+  if (HOOK_CONFLICT_PATTERNS.some(p => p.test(trimmed))) return true
+  // Ends with ।/. and is short — could be impactful statement hook
+  if ((trimmed.endsWith(‘।’) || trimmed.endsWith(‘.’)) && words <= 14) {
+    if (HOOK_CONFLICT_PATTERNS.some(p => p.test(trimmed))) return true
+  }
+  return false
+}
+
+// Finds the hook index using both formatted and bare dialogue detection
+function findHookIdx(lines) {
+  const formatted = lines.findIndex(l => isDialogue(l))
+  let bare = -1
+  for (let i = 0; i < Math.min(6, lines.length); i++) {
+    if (isBareDialogueHook(lines[i])) { bare = i; break }
+  }
+  if (formatted === -1 && bare === -1) return -1
+  if (formatted === -1) return bare
+  if (bare === -1) return formatted
+  return Math.min(formatted, bare)
+}
+
 function isCTALine(line) {
   return /pocket\s*fm|पॉकेट|install|download|डाउनलोड|सुनिए|बटन पर/i.test(line)
 }
@@ -712,12 +748,21 @@ function scoreHookLine(lines) {
   }
   const hookSearchLines = lines.slice(startIdx, startIdx + 10)
 
-  const hookIdx = hookSearchLines.findIndex(l => isDialogue(l))
+  // Primary: explicitly formatted dialogue (Name: text or "text")
+  const formattedHookIdx = hookSearchLines.findIndex(l => isDialogue(l))
+  // Fallback: bare dialogue hook (no Name: prefix or quotes — very common in Hindi promo scripts)
+  let bareHookIdx = -1
+  for (let i = 0; i < Math.min(5, hookSearchLines.length); i++) {
+    if (isBareDialogueHook(hookSearchLines[i])) { bareHookIdx = i; break }
+  }
+  const hookFromBare = formattedHookIdx === -1 || (bareHookIdx !== -1 && bareHookIdx < formattedHookIdx)
+  const hookIdx = hookFromBare ? bareHookIdx : formattedHookIdx
+
   let score = 2
   const parts = []
 
   if (hookIdx === -1) {
-    parts.push('NO dialogue found in opening — hook MUST be a character\'s spoken line in quotes. Starting with narration is the #1 cause of P2 scripts.')
+    parts.push('NO hook dialogue found in opening — hook MUST be a character\'s spoken line. Opening with narration is the #1 cause of P2 scripts. Start IMMEDIATELY with a character saying something shocking, urgent, or unexpected.')
     return { score: 2, feedback: parts.join(' ') }
   }
 
@@ -769,7 +814,7 @@ function scoreHookLine(lines) {
 
 // ─── 2. CONTEXT CLARITY (10%) ─────────────────────────────────────────────────
 function scoreContext(lines) {
-  const hookIdx = lines.findIndex(l => isDialogue(l))
+  const hookIdx = findHookIdx(lines)
   if (hookIdx === -1) return { score: 3, feedback: 'Cannot evaluate context — no hook dialogue found' }
 
   // Context = lines between hook and second dialogue
@@ -864,7 +909,8 @@ function scoreSequence(lines, fullText) {
     parts.push('JUMBLED sequence detected — opens with peak shock moment, then provides backstory. This is the highest-impact sequence type used in TBG-Akshay-LP3 and BKR-Hasim-LP3. Each cut must raise a new question.')
   } else {
     detectedType = 'ORIGINAL'
-    parts.push('ORIGINAL sequence (chronological) — events flow in story order. This works when the natural order creates enough tension. If not, consider JUMBLED: open with the most shocking moment first, then reveal why it happened.')
+    score += 1
+    parts.push('ORIGINAL sequence (chronological) — events flow in story order. This is the sequence type used by P0 Drama hits like BRHW, BH, and MMP — it works excellently when the first line is a crisis and scenes advance logically.')
   }
 
   // ── CRISIS-OPENING CHECK ─────────────────────────────────────────────────────
@@ -876,7 +922,7 @@ function scoreSequence(lines, fullText) {
   }
 
   // ── TRANSITIONS ──────────────────────────────────────────────────────────────
-  const transitions = ['तभी', 'लेकिन', 'मगर', 'अगले ही पल', 'इसके बाद', 'उसी पल', 'देखते ही', 'अचानक', 'suddenly', 'then', 'but', 'however', 'at that moment', 'इसी के साथ', 'और तभी']
+  const transitions = ['तभी', 'लेकिन', 'मगर', 'अगले ही पल', 'इसके बाद', 'उसी पल', 'देखते ही', 'अचानक', 'suddenly', 'then', 'but', 'however', 'at that moment', 'इसी के साथ', 'और तभी', 'जैसे ही', 'उसी वक्त', 'फिर', 'और फिर', 'उसके बाद', 'बाद में', 'लेकिन जब', 'मगर जब', 'तब', 'उस पल', 'उसी क्षण', 'वहीं', 'इतने में', 'उसी समय', 'जहाँ', 'वहाँ', 'इधर', 'उधर', 'तभी अचानक', 'और उसी पल']
   const transCount = transitions.filter(w => lower.includes(w)).length
 
   if (transCount >= 5) {
@@ -1106,8 +1152,15 @@ function scoreRatio(lines, fullText) {
     score += 1
     parts.push(`Dialogue is only ${Math.round(ratio * 100)}% — slightly low. Add 2-3 key character dialogue moments to bring the story to life.`)
   } else if (diaLines.length === 0) {
-    score -= 1
-    parts.push('No dialogue detected — add character dialogue. Rule 10: 30% dialogue is required. Every key scene needs a character\'s spoken line.')
+    // Check if there is bare dialogue present (unformatted — no Name: prefix or quotes)
+    const hasBareDialogue = mainLines.some(l => isBareDialogueHook(l))
+    if (hasBareDialogue) {
+      score += 1
+      parts.push('Dialogue appears to be written as plain text (without character name prefix or quote marks). Consider formatting as "CharacterName: dialogue" for clarity. Ratio estimated — actual dialogue likely present.')
+    } else {
+      score -= 1
+      parts.push('No dialogue detected — add character dialogue. Rule 10: 30% dialogue is required. Every key scene needs a character\'s spoken line.')
+    }
   }
 
   if (longestDia > 25) {
@@ -1133,18 +1186,38 @@ function detectEpisodeCallback(lines, fullText) {
 
   // Story-start / journey-beginning markers
   const startMarkers = [
+    // Original markers
     'शुरुआत में', 'शुरू हुई', 'शुरू हुआ था', 'शुरुआत हुई',
     'पहली बार जब', 'जिस दिन', 'उस दिन से', 'उसी दिन',
     'तभी से', 'सब शुरू हुआ', 'यहाँ से शुरू', 'यहीं से शुरू',
     'यही वो पल', 'जब पहली बार', 'वो पहला दिन',
     'जब से मिले', 'जब से आई', 'जब से आया',
     'इसी पल से', 'इस एक पल ने', 'उस दिन किसे पता था',
+    // Expanded markers — story beginning callbacks
+    'याद है वो पल', 'याद है जब', 'याद करो वो', 'वो पल याद',
+    'पहली मुलाकात', 'पहली नजर', 'पहली नज़र', 'पहली ही बार',
+    'कहानी शुरू हुई', 'इस कहानी की', 'कहानी की शुरू',
+    'यह सफर शुरू', 'इस सफर की', 'यही वो सफर', 'इस सफर',
+    'वो दिन जब', 'वो रात जब', 'उस दिन जब',
+    'जब से जाना', 'जब से समझा', 'जब से देखा',
+    'जब यह सब', 'तब से आज', 'उस रात से',
+    'पहले दिन', 'पहले पल', 'पहले ही दिन',
+    'जब मिले थे', 'जब मिला था', 'जब मिली थी',
+    'उस पहले', 'वो पहले', 'इस पूरी कहानी',
+    'याद आता है', 'याद आती है', 'याद दिलाते',
+    'कैसे शुरू', 'कहाँ से शुरू', 'सब कैसे',
+    'पहली बार मिला', 'पहली बार देखा', 'पहली बार आया',
+    'वो शुरुआती', 'उस पहली बार', 'शुरूआती', 'शुरुआती',
+    'जब ज़िंदगी', 'जब सब कुछ', 'जब दुनिया',
+    'तब क्या पता था', 'किसे पता था', 'कहाँ पता था',
+    'यही से सब', 'इसी मोड़ पर', 'उसी मोड़',
+    'जहाँ से यह', 'जहाँ से सब',
   ]
 
-  // Look in the last 30% of the script, before the CTA section
+  // Look in the last 45% of the script, before the CTA section
   const ctaIdx = lines.findIndex(l => isCTALine(l))
   const contentLines = ctaIdx > 0 ? lines.slice(0, ctaIdx) : lines
-  const startOfLastSection = Math.floor(contentLines.length * 0.65)
+  const startOfLastSection = Math.floor(contentLines.length * 0.55)
   const lastSection = contentLines.slice(startOfLastSection)
   const lastText = lastSection.join(' ').toLowerCase()
 
