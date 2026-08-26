@@ -5,6 +5,16 @@ export default function FeedbackPanel({ result }) {
 
   return (
     <div className="space-y-6">
+      {(result.sourceFidelityPercent != null || result.detectedStructure || result.contradictions?.length) && (
+        <div className="bg-pocket-card border border-pocket-border rounded-xl p-6">
+          <h3 className="text-white font-semibold mb-4">Source Grounding</h3>
+          <div className="grid grid-cols-2 gap-3 text-sm">
+            {result.sourceFidelityPercent != null && <div><span className="text-gray-500 block">Estimated fidelity</span><span className="text-white font-semibold">{result.sourceFidelityPercent}%</span></div>}
+            {result.detectedStructure && <div><span className="text-gray-500 block">Detected sequence</span><span className="text-white font-semibold">{result.detectedStructure}</span></div>}
+          </div>
+          {result.contradictions?.length > 0 && <div className="mt-4"><span className="text-red-400 text-xs font-semibold uppercase tracking-wider">Contradictions to verify</span><ul className="mt-2 space-y-1">{result.contradictions.map((x, i) => <li key={i} className="text-gray-300 text-sm">• {x}</li>)}</ul></div>}
+        </div>
+      )}
       {/* What's Working */}
       {result.whatIsWorking?.length > 0 && (
         <div className="bg-pocket-card border border-pocket-border rounded-xl p-6">
@@ -81,6 +91,13 @@ export default function FeedbackPanel({ result }) {
             <span className="text-blue-400">🎭</span> Genre-Specific Feedback
           </h3>
           <p className="text-gray-300 text-sm leading-relaxed">{result.genreSpecificFeedback}</p>
+        </div>
+      )}
+
+      {result.suggestionsByParameter?.length > 0 && (
+        <div className="bg-pocket-card border border-pocket-border rounded-xl p-6">
+          <h3 className="text-white font-semibold mb-4">Five Refresh Options for Weak Areas</h3>
+          <div className="space-y-5">{result.suggestionsByParameter.map((group, i) => <div key={i}><h4 className="text-pocket-orange text-sm font-semibold">{group.parameter}</h4><ol className="mt-2 space-y-2">{(group.suggestions || []).map((s, j) => <li key={j} className="text-gray-300 text-sm"><span className="text-gray-500 mr-2">{j + 1}.</span><span className="text-white">{s.approach}:</span> {s.rewriteOrFix} <span className="text-gray-500">({s.reason})</span></li>)}</ol></div>)}</div>
         </div>
       )}
     </div>

@@ -22,14 +22,25 @@ function catalog() {
     .filter((x, i, a) => a.findIndex(y => y.showName.toLowerCase() === x.showName.toLowerCase()) === i);
 }
 function findShow(name) { return catalog().find(x => x.showName.toLowerCase() === String(name).toLowerCase()); }
-function snapshot(name, selectedGenre) {
+function snapshot(name, selectedGenre, episodeRange = '1-20') {
   const item = findShow(name); if (!item) throw new Error(`Show source not found: ${name}`);
   const st = fs.statSync(item.sourceFile); const key = item.sourceFile + st.mtimeMs;
   if (!cache.has(key)) cache.set(key, docxText(item.sourceFile));
   const all = cache.get(key); const lines = all.split('\n');
-  const source = lines.slice(0, Math.min(lines.length, 900)).join('\n');
+  // The corpus is labelled 1–50. The rules require the first 20 episodes;
+  // retain headings and all text in that window, with a safe character cap.
+  const requested = String(episodeRange).match(/(\d+)\s*[-–]\s*(\d+)/);
+  const endEpisode = Math.min(requested ? Number(requested[2]) : 20, 20);
+  const episodeStart = new RegExp(`(?:episode|ep(?:isode)?)[ .:_-]*1\\b`, 'i');
+  const episodeMarkers = lines.map((line, i) => /^(?:episode|ep(?:isode)?)[ .:_-]*\d+/i.test(line) ? i : -1).filter(i => i >= 0);
+  let source = lines.slice(0, Math.min(lines.length, 2400)).join('\n');
+  if (episodeMarkers.length) {
+    const cutoff = episodeMarkers.find(i => { const m = lines[i].match(/\d+/); return m && Number(m[0]) > endEpisode; });
+    source = lines.slice(0, cutoff || Math.min(lines.length, 2400)).join('\n');
+  }
+  source = source.slice(0, 90000);
   const promoFiles = files(PROMOS).filter(f => path.basename(path.dirname(f)).toLowerCase() === item.showName.toLowerCase());
   const promos = promoFiles.slice(0, 30).map(f => ({ file: f, text: docxText(f).slice(0, 12000) }));
-  return { ...item, genre: selectedGenre || item.genre, source, promos };
+  return { ...item, genre: selectedGenre || item.genre, source, promos, episodeRange: `1-${endEpisode}` };
 }
-module.exports = { catalog, snapshot };
+module.exports = { catalog, snapshot, findShow };

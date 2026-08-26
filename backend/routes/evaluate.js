@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { evaluateScript, compareScripts } = require('../services/openaiService');
+const { findShow } = require('../services/docxKnowledgeBase');
 
 router.post('/', async (req, res) => {
   try {
@@ -9,12 +10,13 @@ router.post('/', async (req, res) => {
     if (!script || !showName || !genre) {
       return res.status(400).json({ success: false, message: 'Script, show name, and genre are required' });
     }
+    if (!findShow(showName)) return res.status(400).json({ success: false, message: 'Selected show was not found in the configured content library.' });
 
     if (script.trim().length < 50) {
       return res.status(400).json({ success: false, message: 'Script is too short to evaluate. Please paste the full promo script.' });
     }
 
-    const evaluation = await evaluateScript(script, showName, genre, episodeRange || '1-50');
+    const evaluation = await evaluateScript(script, showName, genre, episodeRange || '1-20');
 
     return res.json({ success: true, evaluation });
   } catch (error) {
@@ -27,7 +29,8 @@ router.post('/compare', async (req, res) => {
   try {
     const { promoA, promoB, showName, genre, episodeRange } = req.body;
     if (!promoA || !promoB || !showName || !genre) return res.status(400).json({ success: false, message: 'Both promos, show name, and genre are required' });
-    res.json({ success: true, evaluation: await compareScripts(promoA, promoB, showName, genre, episodeRange || '1-50') });
+    if (!findShow(showName)) return res.status(400).json({ success: false, message: 'Selected show was not found in the configured content library.' });
+    res.json({ success: true, evaluation: await compareScripts(promoA, promoB, showName, genre, episodeRange || '1-20') });
   } catch (error) { console.error('Comparison error:', error); res.status(500).json({ success: false, message: error.message || 'Comparison failed' }); }
 });
 

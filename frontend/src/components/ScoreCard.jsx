@@ -7,13 +7,15 @@ export default function ScoreCard({ result }) {
   const scoreColor = tier === 'P0' ? '#00C851' : tier === 'P1' ? '#FFBB33' : '#FF4444'
 
   const params = [
-    { key: 'hookLine', label: 'Hook Line Quality', weight: '25%' },
-    { key: 'context', label: 'Context Clarity', weight: '10%' },
-    { key: 'sequence', label: 'Sequence Logic', weight: '15%' },
+    { key: 'sourceCharacterFidelity', label: 'Source & Character Fidelity', weight: '15%' },
+    { key: 'hook', label: 'Hook', weight: '20%' },
+    { key: 'contextWorldClarity', label: 'Context & World Clarity', weight: '10%' },
+    { key: 'sequencePlotMovement', label: 'Sequence & Plot Movement', weight: '10%' },
     { key: 'sceneDesign', label: 'Scene Design', weight: '15%' },
-    { key: 'pacing', label: 'Pacing & Transitions', weight: '15%' },
-    { key: 'ending', label: 'Ending & CTA', weight: '10%' },
-    { key: 'ratio', label: 'Narration/Dialogue Ratio', weight: '10%' },
+    { key: 'pacingTransitions', label: 'Pacing & Transitions', weight: '10%' },
+    { key: 'endingCallbackCta', label: 'Ending, Callback & CTA', weight: '10%' },
+    { key: 'narrationDialogueBalance', label: 'Narration/Dialogue Balance', weight: '5%' },
+    { key: 'mentalImpactRecall', label: 'Mental Impact & Recall', weight: '5%' },
   ]
 
   function getBarColor(score) {
