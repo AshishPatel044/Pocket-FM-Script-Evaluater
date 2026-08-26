@@ -3,6 +3,7 @@ const express = require('express');
 const cors = require('cors');
 const authRoutes = require('./routes/auth');
 const evaluateRoutes = require('./routes/evaluate');
+const { catalog } = require('./services/docxKnowledgeBase');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -21,6 +22,7 @@ app.get('/api/health', (req, res) => {
 
 app.use('/api/auth', authRoutes);
 app.use('/api/evaluate', evaluateRoutes);
+app.get('/api/shows', (req, res) => res.json({ success: true, shows: catalog() }));
 
 app.use((err, req, res, next) => {
   console.error(err.stack);

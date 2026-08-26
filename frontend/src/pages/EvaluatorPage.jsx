@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import ResultPage from './ResultPage'
 
 const LOADING_MESSAGES = [
@@ -53,7 +53,9 @@ export default function EvaluatorPage({ auth, onLogout }) {
   const [fileName, setFileName] = useState('')
   const [result, setResult] = useState(null)
   const [error, setError] = useState('')
+  const [shows, setShows] = useState([])
   const fileInputRef = useRef(null)
+  useEffect(() => { fetch('/api/shows').then(r => r.json()).then(d => setShows(d.shows || [])).catch(() => {}) }, [])
 
   async function handleFileUpload(e) {
     const file = e.target.files[0]
@@ -192,14 +194,14 @@ export default function EvaluatorPage({ auth, onLogout }) {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-300 mb-2">Show Name</label>
-                    <input
-                      type="text"
+                    <select
                       value={form.showName}
                       onChange={e => setForm(f => ({ ...f, showName: e.target.value }))}
-                      placeholder="e.g. The Warrior"
-                      className="w-full bg-[#111] border border-pocket-border text-white placeholder-gray-600 rounded-lg px-4 py-2.5 focus:outline-none focus:border-pocket-orange transition-colors"
                       required
-                    />
+                    >
+                      <option value="">Select a show</option>
+                      {shows.map(s => <option key={s.showName} value={s.showName}>{s.showName} — {s.genre}</option>)}
+                    </select>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-300 mb-2">Genre</label>

@@ -1,0 +1,11 @@
+const { snapshot } = require('./docxKnowledgeBase');
+const RULES = `Evaluate PocketFM promos with these weights: Source & Character Fidelity .15, Hook .20, Context & World Clarity .10, Sequence & Plot Movement .10, Scene Design .15, Pacing & Transitions .10, Ending/Callback/CTA .10, Narration/Dialogue Balance .05, Mental Impact & Recall .05. Scores 1-10; P0 >=8.5, P1 >=6.5, else P2. Hook max 13 words; dialogue chunks max 25 words; CTA exactly 3-4 specific questions; include Episode 1 callback and Pocket FM mention. Use source evidence, penalize contradictions, and return exactly five materially different actionable suggestions for every score below 7. Return JSON only.`;
+function json(text) { const m = text.match(/\{[\s\S]*\}/); if (!m) throw new Error('OpenAI returned invalid JSON'); return JSON.parse(m[0]); }
+async function call(prompt) {
+  if (!process.env.OPENAI_API_KEY) throw new Error('OPENAI_API_KEY is not configured on the backend.');
+  const r = await fetch('https://api.openai.com/v1/chat/completions', { method: 'POST', headers: { Authorization: `Bearer ${process.env.OPENAI_API_KEY}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ model: process.env.OPENAI_MODEL || 'gpt-5', messages: [{ role: 'system', content: RULES }, { role: 'user', content: prompt }], temperature: 0.2, response_format: { type: 'json_object' } }) });
+  if (!r.ok) throw new Error(`OpenAI request failed (${r.status})`); const d = await r.json(); return json(d.choices[0].message.content);
+}
+async function evaluateScript(script, show, genre, range) { const s = snapshot(show, genre); return call(`Evaluate this promo for ${show} (${genre}), episodes ${range}. SOURCE:\n${s.source}\nBENCHMARK PROMOS:\n${s.promos.map(p => p.text).join('\n---\n')}\nPROMO:\n${script}`); }
+async function compareScripts(a, b, show, genre, range) { const s = snapshot(show, genre); return call(`Compare Promo A and B for ${show} (${genre}), episodes ${range}. Use the identical source snapshot and benchmark promos. Return side-by-side nine scores, deltas, winner per parameter, overall winner, fidelity/contradictions, differences, and combined recommendation. SOURCE:\n${s.source}\nBENCHMARKS:\n${s.promos.map(p => p.text).join('\n---\n')}\nPROMO A:\n${a}\nPROMO B:\n${b}`); }
+module.exports = { evaluateScript, compareScripts };
