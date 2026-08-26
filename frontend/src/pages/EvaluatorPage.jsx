@@ -141,7 +141,7 @@ export default function EvaluatorPage({ auth, onLogout }) {
         setError(data.message || 'Evaluation failed. Please try again.')
       }
     } catch {
-      setError('Cannot reach the evaluation server. Please check that the backend is running and VITE_API_URL is set correctly in Vercel.')
+      setError('Cannot reach the evaluation server. Please check that the backend is running and BACKEND_URL is set correctly in Vercel.')
     } finally {
       clearInterval(msgInterval)
       setLoading(false)

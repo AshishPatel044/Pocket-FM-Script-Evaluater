@@ -16,6 +16,14 @@ app.use(cors({
 
 app.use(express.json({ limit: '10mb' }));
 
+app.get('/', (req, res) => {
+  res.json({
+    status: 'ok',
+    message: 'PocketFM Script Evaluator backend is running',
+    health: '/api/health'
+  });
+});
+
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', message: 'PocketFM Script Evaluator API is running' });
 });
