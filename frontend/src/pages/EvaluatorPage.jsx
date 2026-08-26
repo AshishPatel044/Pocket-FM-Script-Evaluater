@@ -12,6 +12,13 @@ const LOADING_MESSAGES = [
   'Almost there...',
 ]
 
+// Fallback keeps the selector usable when the frontend is deployed separately
+// from the Node catalog API. The backend remains the source of truth.
+const SHOW_CATALOG = [
+  ['Beggar Husband','Drama'],['Billionaire Hidden Wife','Drama'],['Ek Strranger Se Pyar','Drama'],['Empire of Hidden King','Drama'],['Fated To Be Yours','Drama'],['His Secret Fortune','Drama'],['Malang','Drama'],['My Mysterious Princess','Drama'],['Ruthless','Drama'],
+  ['Brahmand Ka Rakshak','Fantasy'],['Brahmyodha  The Destroyer','Fantasy'],['Divine Flame Burst','Fantasy'],['Divine Power','Fantasy'],['King of Dragon','Fantasy'],['Married To a Hard Hearted','Fantasy'],['Primordial God','Fantasy'],['Purple Thunder Sovereign','Fantasy'],['Rudra  Rise of the Supreme Yodha','Fantasy'],['The Legend Gods','Fantasy'],['The Warrior','Fantasy'],['Shiva  Ek Pretyodha','Horror']
+].map(([showName, genre]) => ({ showName, genre }))
+
 // Extract text from .docx using mammoth (loaded from CDN via dynamic import)
 async function extractDocx(file) {
   const arrayBuffer = await file.arrayBuffer()
@@ -55,7 +62,12 @@ export default function EvaluatorPage({ auth, onLogout }) {
   const [error, setError] = useState('')
   const [shows, setShows] = useState([])
   const fileInputRef = useRef(null)
-  useEffect(() => { fetch('/api/shows').then(r => r.json()).then(d => setShows(d.shows || [])).catch(() => {}) }, [])
+  useEffect(() => {
+    fetch('/api/shows')
+      .then(r => r.ok ? r.json() : Promise.reject(new Error('catalog unavailable')))
+      .then(d => setShows(d.shows?.length ? d.shows : SHOW_CATALOG))
+      .catch(() => setShows(SHOW_CATALOG))
+  }, [])
 
   async function handleFileUpload(e) {
     const file = e.target.files[0]
@@ -196,7 +208,10 @@ export default function EvaluatorPage({ auth, onLogout }) {
                     <label className="block text-sm font-medium text-gray-300 mb-2">Show Name</label>
                     <select
                       value={form.showName}
-                      onChange={e => setForm(f => ({ ...f, showName: e.target.value }))}
+                      onChange={e => {
+                        const selected = shows.find(s => s.showName === e.target.value)
+                        setForm(f => ({ ...f, showName: e.target.value, genre: selected?.genre || f.genre }))
+                      }}
                       required
                     >
                       <option value="">Select a show</option>
