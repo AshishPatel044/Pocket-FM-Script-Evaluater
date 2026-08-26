@@ -2,8 +2,8 @@ const fs = require('fs');
 const path = require('path');
 const { execFileSync } = require('child_process');
 
-const ROOT = process.env.SHOW_CONTENT_ROOT || path.resolve(__dirname, '../../../Serieses Scripts');
-const PROMOS = process.env.SHOW_PROMOS_ROOT || path.resolve(__dirname, '../../../Show Wise Promos');
+const ROOT = process.env.SHOW_CONTENT_ROOT || [path.resolve(__dirname, '../../../Serieses Scripts'), path.resolve(process.cwd(), 'Serieses Scripts')].find(fs.existsSync) || path.resolve(__dirname, '../../../Serieses Scripts');
+const PROMOS = process.env.SHOW_PROMOS_ROOT || [path.resolve(__dirname, '../../../Show Wise Promos'), path.resolve(process.cwd(), 'Show Wise Promos')].find(fs.existsSync) || path.resolve(__dirname, '../../../Show Wise Promos');
 const cache = new Map();
 
 function docxText(file) {

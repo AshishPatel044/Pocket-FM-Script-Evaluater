@@ -29,6 +29,12 @@ app.use((err, req, res, next) => {
   res.status(500).json({ success: false, message: 'Internal server error' });
 });
 
-app.listen(PORT, () => {
-  console.log(`Script Evaluator backend running on http://localhost:${PORT}`);
-});
+// Vercel imports the Express app as a serverless handler; local development
+// still starts a normal HTTP server.
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`Script Evaluator backend running on http://localhost:${PORT}`);
+  });
+}
+
+module.exports = app;
