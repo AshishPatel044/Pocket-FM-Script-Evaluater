@@ -2,6 +2,9 @@
   "functions": {
     "api/evaluate.js": {
       "maxDuration": 60
+    },
+    "api/shows.js": {
+      "maxDuration": 10
     }
   }
 }
