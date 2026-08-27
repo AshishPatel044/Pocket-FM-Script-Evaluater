@@ -1,9 +1,13 @@
-const shows = [
-  ['Beggar Husband','Drama'],['Billionaire Hidden Wife','Drama'],['Ek Strranger Se Pyar','Drama'],['Empire of Hidden King','Drama'],['Fated To Be Yours','Drama'],['His Secret Fortune','Drama'],['Malang','Drama'],['My Mysterious Princess','Drama'],['Ruthless','Drama'],
-  ['Brahmand Ka Rakshak','Fantasy'],['Brahmyodha  The Destroyer','Fantasy'],['Divine Flame Burst','Fantasy'],['Divine Power','Fantasy'],['King of Dragon','Fantasy'],['Married To a Hard Hearted','Fantasy'],['Primordial God','Fantasy'],['Purple Thunder Sovereign','Fantasy'],['Rudra  Rise of the Supreme Yodha','Fantasy'],['The Legend Gods','Fantasy'],['The Warrior','Fantasy'],['Shiva  Ek Pretyodha','Horror']
-].map(([showName, genre]) => ({ showName, genre }))
+const DEFAULT_BACKEND = 'https://pocket-fm-script-evaluater-production.up.railway.app'
 
-export default function handler(req, res) {
+export default async function handler(req, res) {
   if (req.method !== 'GET') return res.status(405).json({ success: false, message: 'Method not allowed' })
-  res.status(200).json({ success: true, shows })
+  const backend = (process.env.BACKEND_URL || process.env.VITE_API_URL || DEFAULT_BACKEND).replace(/\/$/, '')
+  try {
+    const response = await fetch(`${backend}/api/shows`, { signal: AbortSignal.timeout(10000) })
+    const body = await response.text()
+    res.status(response.status).setHeader('content-type', 'application/json').send(body)
+  } catch (error) {
+    res.status(502).json({ success: false, message: `Evaluator backend unavailable: ${error.message}` })
+  }
 }
