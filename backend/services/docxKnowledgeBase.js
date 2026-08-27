@@ -21,7 +21,12 @@ function catalog() {
   return files(ROOT).map(file => ({ showName: showName(file), genre: genre(file), sourceFile: file, updatedAt: fs.statSync(file).mtimeMs }))
     .filter((x, i, a) => a.findIndex(y => y.showName.toLowerCase() === x.showName.toLowerCase()) === i);
 }
-function findShow(name) { return catalog().find(x => x.showName.toLowerCase() === String(name).toLowerCase()); }
+// Frontend labels can contain repeated or non-breaking whitespace copied from
+// filenames. Treat equivalent whitespace as the same show name.
+function normalizeShowName(name) {
+  return String(name || '').replace(/[\u00a0\s]+/g, ' ').trim().toLowerCase();
+}
+function findShow(name) { return catalog().find(x => normalizeShowName(x.showName) === normalizeShowName(name)); }
 function snapshot(name, selectedGenre, episodeRange = '1-20') {
   const item = findShow(name); if (!item) throw new Error(`Show source not found: ${name}`);
   const st = fs.statSync(item.sourceFile); const key = item.sourceFile + st.mtimeMs;
