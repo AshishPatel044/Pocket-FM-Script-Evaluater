@@ -9,7 +9,23 @@ function resolveLibraryRoot(envName, folder) {
     path.resolve(__dirname, '../../', folder),
     path.resolve(__dirname, '../../../', folder)
   ].filter(Boolean);
-  return candidates.find(fs.existsSync) || candidates[0];
+  // A configured directory can exist while still being the wrong/empty mount
+  // in a deployment. Select the first directory that contains the expected
+  // DOCX corpus instead of treating directory existence as sufficient.
+  const hasDocx = candidate => {
+    if (!fs.existsSync(candidate) || !fs.statSync(candidate).isDirectory()) return false;
+    const pending = [candidate];
+    while (pending.length) {
+      const current = pending.pop();
+      for (const entry of fs.readdirSync(current, { withFileTypes: true })) {
+        const fullPath = path.join(current, entry.name);
+        if (entry.isDirectory()) pending.push(fullPath);
+        else if (entry.name.toLowerCase().endsWith('.docx')) return true;
+      }
+    }
+    return false;
+  };
+  return candidates.find(hasDocx) || candidates.find(fs.existsSync) || candidates[0];
 }
 const ROOT = resolveLibraryRoot('SHOW_CONTENT_ROOT', 'Serieses Scripts');
 const PROMOS = resolveLibraryRoot('SHOW_PROMOS_ROOT', 'Show Wise Promos');
