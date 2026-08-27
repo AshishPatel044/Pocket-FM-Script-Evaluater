@@ -2,8 +2,17 @@ const fs = require('fs');
 const path = require('path');
 const { execFileSync } = require('child_process');
 
-const ROOT = process.env.SHOW_CONTENT_ROOT || [path.resolve(__dirname, '../../../Serieses Scripts'), path.resolve(process.cwd(), 'Serieses Scripts')].find(fs.existsSync) || path.resolve(__dirname, '../../../Serieses Scripts');
-const PROMOS = process.env.SHOW_PROMOS_ROOT || [path.resolve(__dirname, '../../../Show Wise Promos'), path.resolve(process.cwd(), 'Show Wise Promos')].find(fs.existsSync) || path.resolve(__dirname, '../../../Show Wise Promos');
+function resolveLibraryRoot(envName, folder) {
+  const candidates = [
+    process.env[envName],
+    path.resolve(process.cwd(), folder),
+    path.resolve(__dirname, '../../', folder),
+    path.resolve(__dirname, '../../../', folder)
+  ].filter(Boolean);
+  return candidates.find(fs.existsSync) || candidates[0];
+}
+const ROOT = resolveLibraryRoot('SHOW_CONTENT_ROOT', 'Serieses Scripts');
+const PROMOS = resolveLibraryRoot('SHOW_PROMOS_ROOT', 'Show Wise Promos');
 const cache = new Map();
 
 function docxText(file) {
