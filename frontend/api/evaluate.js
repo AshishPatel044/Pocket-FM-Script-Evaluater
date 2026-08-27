@@ -8,7 +8,7 @@ export default async function handler(req, res) {
   // Vercel needs the public URL of the separately deployed backend. During
   // local development the Vite proxy handles /api, so this function is only
   // used when the frontend is deployed as its own Vercel project.
-  const backend = process.env.BACKEND_URL || process.env.VITE_API_URL
+  const backend = process.env.BACKEND_URL || process.env.VITE_API_URL || 'https://pocket-fm-script-evaluater-production.up.railway.app'
   if (!backend) return res.status(500).json({ success: false, message: 'BACKEND_URL is not configured. Point it to the deployed evaluator backend.' })
   try {
     const backendUrl = backend.replace(/\/$/, '')

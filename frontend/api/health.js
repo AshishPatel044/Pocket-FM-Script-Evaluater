@@ -5,8 +5,7 @@ export default async function handler(req, res) {
   }
   if (req.method === 'OPTIONS') return res.status(204).end()
 
-  const backend = process.env.BACKEND_URL || process.env.VITE_API_URL
-  if (!backend) return res.status(500).json({ success: false, message: 'BACKEND_URL is not configured.' })
+  const backend = process.env.BACKEND_URL || process.env.VITE_API_URL || 'https://pocket-fm-script-evaluater-production.up.railway.app'
 
   try {
     const response = await fetch(`${backend.replace(/\/$/, '')}/api/health`, {
